@@ -9,9 +9,9 @@
   data-expires-at="{{ bonus.get('expires_at', '') }}"
 >
   <div class="bonus-alert-dots"></div>
-  <div class="bonus-alert-siren">! ! ALERT ! !</div>
+  {% include "_presented_by.html" %}
   <div class="bonus-alert-pop">SPIDEY-<br>SENSE!!</div>
-  <div class="bonus-alert-sub">SURPRISE BONUS THREAT</div>
+  <div class="bonus-alert-sub">SURPRISE BONUS MISSION</div>
   <a href="{{ url_for('games.play_game', game_id='bonus') }}" class="bonus-alert-cta">
     TAP TO RESPOND <span class="arrow">&rarr;</span>
   </a>

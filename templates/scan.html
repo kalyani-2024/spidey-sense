@@ -11,20 +11,33 @@
 {% block content %}
 <div class="scan-shell mode-{{ mode }}">
   <div class="scan-top-bar"></div>
+  {% include "_presented_by.html" %}
   <div class="scan-eyebrow">{{ eyebrow or (mode|upper ~ ' SCAN') }}</div>
   <div class="scan-banner"><h1 class="scan-banner-title">SPIDEY SENSE</h1></div>
-  <div class="scan-heading">{{ heading }}</div>
-  <p class="scan-subcopy">{{ subcopy }}</p>
 
   {% if dev_mode %}
-    <div class="dev-mode-banner">QR SCANNING DISABLED -- DEV MODE</div>
-    <button type="button" id="dev-scan-btn" class="btn-complete" style="width:100%;">
-      {{ 'TAP TO SCAN' if mode == 'start' else 'SCAN TO STOP THE CLOCK' }}
-    </button>
+    {# Real camera-based QR scanning is deferred -- tapping this placeholder
+       QR (exactly like the prototype's onClick on the QR frame) advances,
+       matching the design's "tap the QR to get started" flow for now. #}
+    <div class="scan-qr-frame" id="scan-qr-frame">
+      <span class="scan-qr-corner tl"></span>
+      <span class="scan-qr-corner tr"></span>
+      <span class="scan-qr-corner bl"></span>
+      <span class="scan-qr-corner br"></span>
+      <div class="scan-qr-card">
+        <div class="scan-qr-image"></div>
+        <div class="scan-qr-scanline"></div>
+      </div>
+    </div>
+    <div class="scan-heading" id="scan-heading">{{ heading }}</div>
+    <p class="scan-subcopy">{{ subcopy }}</p>
     <div class="scan-status" id="scan-status"></div>
   {% else %}
+    <div class="scan-heading">{{ heading }}</div>
+    <p class="scan-subcopy">{{ subcopy }}</p>
     <div class="scan-camera-frame" id="scan-camera-frame">
       <video id="scan-video" playsinline muted></video>
+      <div class="scan-camera-line"></div>
       <div class="scan-reticle-overlay">
         <span class="scan-corner tl"></span>
         <span class="scan-corner tr"></span>
@@ -32,7 +45,7 @@
         <span class="scan-corner br"></span>
       </div>
     </div>
-    <div class="scan-status" id="scan-status">Point your camera at the QR sticker&hellip;</div>
+    <div class="scan-status" id="scan-status">Scan the QR Code at the Stall &hellip;</div>
   {% endif %}
 </div>
 {% endblock %}
@@ -42,12 +55,15 @@
   window.SPIDEY_SCAN_SUBMIT_URL = {{ submit_url|tojson }};
 </script>
 {% if dev_mode %}
+<script src="{{ url_for('static', filename='js/qr_placeholder.js') }}"></script>
 <script>
   (function () {
-    var btn = document.getElementById("dev-scan-btn");
     var statusEl = document.getElementById("scan-status");
-    btn.addEventListener("click", function () {
-      btn.disabled = true;
+    var busy = false;
+
+    function submit() {
+      if (busy) return;
+      busy = true;
       statusEl.textContent = "Working...";
       fetch(window.SPIDEY_SCAN_SUBMIT_URL, {
         method: "POST",
@@ -60,10 +76,13 @@
             window.location.href = data.redirect;
           } else {
             statusEl.textContent = data.message || "Something went wrong.";
-            btn.disabled = false;
+            busy = false;
           }
         });
-    });
+    }
+
+    document.getElementById("scan-qr-frame").addEventListener("click", submit);
+    document.getElementById("scan-heading").addEventListener("click", submit);
   })();
 </script>
 {% else %}

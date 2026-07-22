@@ -50,7 +50,7 @@ def mark_start_scan():
             return jsonify({"status": "error", "message": "That's not the right QR code"}), 409
 
     models.begin_run(player["player_id"])
-    return jsonify({"status": "ok", "redirect": url_for("main.dashboard")})
+    return jsonify({"status": "ok", "redirect": url_for("main.suitup")})
 
 
 @scan_bp.route("/scan/finish")

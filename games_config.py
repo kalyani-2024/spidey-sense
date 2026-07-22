@@ -44,7 +44,7 @@ BONUS_EARLIEST_OFFSET = 90    # never before 1.5 min in
 BONUS_LATEST_OFFSET = 780     # never after 13 min in
 # ...and once it appears, it only stays available for this long before
 # it's gone for good.
-BONUS_WINDOW_SECONDS = 180    # 3 minutes
+BONUS_WINDOW_SECONDS = 60     # 1 minute
 
 # --- Physical QR codes -------------------------------------------------
 #

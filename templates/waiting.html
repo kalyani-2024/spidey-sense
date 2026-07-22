@@ -3,25 +3,23 @@
 {% block body_class %}page-waiting{% endblock %}
 
 {% block content %}
-<div class="dashboard-shell">
-  {% include "_hud.html" %}
+<div class="waiting-shell">
+  <div class="waiting-backdrop-art"></div>
+  <div class="waiting-backdrop-scrim"></div>
+  {% include "_presented_by.html" %}
   {% include "_bonus_banner.html" %}
 
-  <div class="waiting-shell">
-    <div class="waiting-backdrop-art"></div>
-    <div class="waiting-backdrop-scrim"></div>
-    <div class="waiting-shell-content">
-      <div class="waiting-eyebrow">SPIDEY-SENSE RESTING</div>
-      <h1 class="waiting-title">NEXT UP: {{ game_info['number'] }}. {{ game_info['title'] }}</h1>
+  <div class="waiting-shell-content">
+    <div class="waiting-eyebrow">SPIDEY-SENSE RESTING</div>
+    <h1 class="waiting-title">NEXT THREAT<br>INCOMING</h1>
 
-      <div class="countdown-ring">
-        <span class="countdown-ring-base"></span>
-        <span class="countdown-ring-spin"></span>
-        <span class="countdown-value" id="countdown-value">--:--</span>
-      </div>
-
-      <p class="waiting-copy">Stay alert &mdash; your Spidey-Sense might <b class="tingle-word">tingle</b> at any second&hellip;</p>
+    <div class="countdown-ring">
+      <span class="countdown-ring-base"></span>
+      <span class="countdown-ring-spin"></span>
+      <span class="countdown-value" id="countdown-value">--:--</span>
     </div>
+
+    <p class="waiting-copy">Stay alert! Your Spidey-Sense might <b class="tingle-word">tingle</b> at any second&hellip;</p>
   </div>
 </div>
 {% endblock %}

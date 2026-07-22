@@ -3,29 +3,39 @@
 {% block body_class %}page-game{% endblock %}
 
 {% block content %}
-<div class="dashboard-shell">
-  {% include "_hud.html" %}
+<div class="game-shell">
+  {% if game_id != 'bonus' %}<div class="game-backdrop-art"></div>{% endif %}
+  <div class="game-backdrop-scrim"></div>
+  {% include "_presented_by.html" %}
   {% if game_id != 'bonus' %}{% include "_bonus_banner.html" %}{% endif %}
 
-  <div class="game-shell">
-    <div class="game-backdrop-scrim"></div>
-    <div class="game-shell-content">
-      {% block game_header %}
-      <div class="game-header">
+  <div class="game-shell-content">
+    {% block game_header %}
+    <div class="game-header">
+      <div class="game-header-row">
         <span class="game-number">CHALLENGE {{ game_info['number'] }}</span>
-        <h1 class="game-title">{{ game_info['title'] }}</h1>
+        <div class="progress-dots">
+          {% for step in main_sequence or ['1','2','3','4'] %}
+            <span class="dot {{ 'dot-done' if step in progress['completed'] else '' }} {{ 'dot-active' if step == game_id else '' }}"></span>
+          {% endfor %}
+        </div>
+      </div>
+      <h1 class="game-title">{{ game_info['title'] }}</h1>
+    </div>
+    {% endblock %}
+
+    <div class="game-spacer"></div>
+
+    <div class="game-viewport" id="game-viewport" data-game-id="{{ game_id }}" data-token="{{ token }}">
+      {% block game_content %}
+      <div class="placeholder-panel">
+        <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
+        <p class="game-placeholder-copy">Your 30&ndash;60s challenge drops into this panel. Solve it fast!</p>
       </div>
       {% endblock %}
+    </div>
 
-      <div class="game-viewport" id="game-viewport" data-game-id="{{ game_id }}" data-token="{{ token }}">
-        {% block game_content %}
-        <div class="placeholder-panel">
-          <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
-          <p class="game-placeholder-copy">Your 30&ndash;60s challenge drops into this panel. Solve it fast!</p>
-        </div>
-        {% endblock %}
-      </div>
-
+    <div class="game-cta-row">
       {% block game_controls %}
       <button type="button" id="complete-btn" class="btn-complete">THWIP! I DID IT</button>
       {% endblock %}

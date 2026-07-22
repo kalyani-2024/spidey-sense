@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}SPIDEY SENSE -- Insert Coin{% endblock %}
+{% block title %} SPIDEY SENSE {% endblock %}
 {% block body_class %}page-home{% endblock %}
 
 {% block content %}
 <div class="webgrid-card">
+  <div class="hazard-stripe"></div>
+  {% include "_presented_by.html" %}
 
   <div class="webgrid-banner">
     <h1 class="webgrid-title">SPIDEY SENSE</h1>
@@ -24,6 +26,6 @@
     <span>Sign in with Google</span>
   </a>
 
-  <div class="webgrid-subtitle">Then scan the QR at the stall to start your timer.</div>
+  
 </div>
 {% endblock %}

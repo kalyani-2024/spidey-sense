@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}SPIDEY SENSE -- Results{% endblock %}
+{% block title %} SPIDEY SENSE -- Results {% endblock %}
 {% block body_class %}page-results{% endblock %}
 
 {% block content %}
 <div class="finish-shell">
   <div class="finish-dots"></div>
   <div class="finish-top-bar"></div>
+  {% include "_presented_by.html" %}
 
   <div class="finish-thwip">THWIP!</div>
 
@@ -18,9 +19,8 @@
     <div class="hero-spider-art"></div>
   </div>
 
-  <p class="finish-copy">Clock stopped. Show this screen at the stall to see if your Spidey-Sense was the fastest.</p>
-  <div class="finish-bonus-tag">BONUS ROUND: {{ 'CLEARED ⭐' if progress['bonus_done'] else 'MISSED' }}</div>
+  <p class="finish-copy">Thanks for playing! Hope your Spidey Sense was as sharp as Peter Parker's. But this is not the end...<br> Your next mission starts with ACM 🚀</p>
 
-  <a href="{{ url_for('auth.logout') }}" class="finish-play-again">PLAY AGAIN</a>
+  <a href="https://portal.acmbpdc.org/?next=%2Fmembership" class="finish-play-again">JOIN ACM!!!</a>
 </div>
 {% endblock %}

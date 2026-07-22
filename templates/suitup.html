@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- Suit Up{% endblock %}
+{% block body_class %}page-suitup{% endblock %}
+
+{% block content %}
+<div class="suitup-shell">
+  {% include "_presented_by.html" %}
+  <div class="suitup-spider">{% include "_spider_icon.html" %}</div>
+  <h1 class="suitup-heading">SUIT UP</h1>
+  <div class="suitup-count" id="suitup-count">3</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    var nums = [3, 2, 1];
+    var i = 0;
+    var el = document.getElementById('suitup-count');
+    var next = {{ next_url|tojson }};
+
+    var tick = setInterval(function () {
+      i += 1;
+      if (i < nums.length) {
+        el.textContent = nums[i];
+      } else {
+        clearInterval(tick);
+        setTimeout(function () { window.location.href = next; }, 500);
+      }
+    }, 700);
+  })();
+</script>
+{% endblock %}

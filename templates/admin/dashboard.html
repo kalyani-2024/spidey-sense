@@ -3,7 +3,7 @@
 {% block body_class %}page-admin{% endblock %}
 
 {% block content %}
-<div class="dashboard-shell" style="max-width: 820px;">
+<div class="admin-shell">
   <div class="hud-bar">
     <div class="hud-block">
       <span class="hud-label">SIGNED IN AS</span>
@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <h2 class="challenge-title" style="text-align:left;">LEADERBOARD ({{ roster['finished']|length }} finished)</h2>
+  <h2 class="admin-title">LEADERBOARD </h2>
   <div class="scoreboard">
     <div class="scoreboard-row scoreboard-head">
       <span>RANK</span><span>PLAYER</span><span>TIME</span>
