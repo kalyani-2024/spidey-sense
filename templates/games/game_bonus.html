@@ -1,0 +1,32 @@
+{% extends "games/game_base.html" %}
+{% block body_class %}page-game page-bonus{% endblock %}
+
+{% block game_header %}
+<div class="game-header bonus-game-header">
+  <div class="bonus-round-tag">&#9889; BONUS ROUND</div>
+  <h1 class="game-title bonus-game-title">{{ game_info['title'] }}</h1>
+  <div class="bonus-game-tag">Quick! Beat it for a time boost.</div>
+</div>
+{% endblock %}
+
+{% block game_content %}
+<div class="placeholder-panel placeholder-bonus">
+  <div class="placeholder-headline bonus-placeholder-headline">BONUS MINI-GAME HERE</div>
+  <p class="game-placeholder-copy">
+    A lightning-quick bonus challenge drops into this panel.<br><br>
+    <strong>Placeholder for the Bonus Round: Bonus Web Strike.</strong>
+    Mini-game developers: replace this block (and the JS in
+    <code>static/js/game_bonus.js</code>) with the real challenge. When the
+    player finishes, call <code>completeGame('bonus')</code> from
+    <code>game.js</code>.
+  </p>
+</div>
+{% endblock %}
+
+{% block game_controls %}
+<button type="button" id="complete-btn" class="btn-complete btn-claim-bonus">CLAIM THE BONUS!</button>
+{% endblock %}
+
+{% block game_scripts %}
+<script src="{{ url_for('static', filename='js/game_bonus.js') }}"></script>
+{% endblock %}

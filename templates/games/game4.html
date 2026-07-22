@@ -1,0 +1,17 @@
+{% extends "games/game_base.html" %}
+
+{% block game_content %}
+<div class="placeholder-panel">
+  <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
+  <p class="game-placeholder-copy">
+    <strong>Placeholder for Mini-Game #4: Final Takedown.</strong><br>
+    Mini-game developers: replace this block (and the JS in
+    <code>static/js/game4.js</code>) with the real challenge. When the player
+    finishes, call <code>completeGame('4')</code> from <code>game.js</code>.
+  </p>
+</div>
+{% endblock %}
+
+{% block game_scripts %}
+<script src="{{ url_for('static', filename='js/game4.js') }}"></script>
+{% endblock %}

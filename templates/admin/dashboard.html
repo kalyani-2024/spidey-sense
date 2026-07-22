@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- Admin Dashboard{% endblock %}
+{% block body_class %}page-admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell" style="max-width: 820px;">
+  <div class="hud-bar">
+    <div class="hud-block">
+      <span class="hud-label">SIGNED IN AS</span>
+      <span class="hud-value">{{ admin_email }}</span>
+    </div>
+    <div class="hud-block">
+      <a href="{{ url_for('admin.logout') }}" class="hud-value" style="color: var(--red);">LOG OUT</a>
+    </div>
+  </div>
+
+  <h2 class="challenge-title" style="text-align:left;">LEADERBOARD ({{ roster['finished']|length }} finished)</h2>
+  <div class="scoreboard">
+    <div class="scoreboard-row scoreboard-head">
+      <span>RANK</span><span>PLAYER</span><span>TIME</span>
+    </div>
+    {% for e in roster['finished'] %}
+      <div class="scoreboard-row {{ 'rank-1' if loop.index == 1 else ('rank-2' if loop.index == 2 else ('rank-3' if loop.index == 3 else '')) }}">
+        <span class="rank-num">#{{ loop.index }}</span>
+        <span class="rank-name">{{ e['player_name'] }} <small style="color:var(--ink-dim);">({{ e['google_email'] }})</small></span>
+        <span class="rank-time">{{ '%d:%02d'|format((e['elapsed'] // 60)|int, (e['elapsed'] % 60)|int) }}</span>
+      </div>
+    {% else %}
+      <div class="scoreboard-row"><span class="scoreboard-empty">Nobody has finished yet.</span></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

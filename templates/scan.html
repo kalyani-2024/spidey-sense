@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- {{ heading }}{% endblock %}
+{% block body_class %}page-scan{% endblock %}
+
+{% block extra_head %}
+{% if not dev_mode %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="scan-shell mode-{{ mode }}">
+  <div class="scan-top-bar"></div>
+  <div class="scan-eyebrow">{{ eyebrow or (mode|upper ~ ' SCAN') }}</div>
+  <div class="scan-banner"><h1 class="scan-banner-title">SPIDEY SENSE</h1></div>
+  <div class="scan-heading">{{ heading }}</div>
+  <p class="scan-subcopy">{{ subcopy }}</p>
+
+  {% if dev_mode %}
+    <div class="dev-mode-banner">QR SCANNING DISABLED -- DEV MODE</div>
+    <button type="button" id="dev-scan-btn" class="btn-complete" style="width:100%;">
+      {{ 'TAP TO SCAN' if mode == 'start' else 'SCAN TO STOP THE CLOCK' }}
+    </button>
+    <div class="scan-status" id="scan-status"></div>
+  {% else %}
+    <div class="scan-camera-frame" id="scan-camera-frame">
+      <video id="scan-video" playsinline muted></video>
+      <div class="scan-reticle-overlay">
+        <span class="scan-corner tl"></span>
+        <span class="scan-corner tr"></span>
+        <span class="scan-corner bl"></span>
+        <span class="scan-corner br"></span>
+      </div>
+    </div>
+    <div class="scan-status" id="scan-status">Point your camera at the QR sticker&hellip;</div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  window.SPIDEY_SCAN_SUBMIT_URL = {{ submit_url|tojson }};
+</script>
+{% if dev_mode %}
+<script>
+  (function () {
+    var btn = document.getElementById("dev-scan-btn");
+    var statusEl = document.getElementById("scan-status");
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      statusEl.textContent = "Working...";
+      fetch(window.SPIDEY_SCAN_SUBMIT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: "dev-mode" }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.status === "ok") {
+            window.location.href = data.redirect;
+          } else {
+            statusEl.textContent = data.message || "Something went wrong.";
+            btn.disabled = false;
+          }
+        });
+    });
+  })();
+</script>
+{% else %}
+<script src="{{ url_for('static', filename='js/qr_scan.js') }}"></script>
+{% endif %}
+{% endblock %}

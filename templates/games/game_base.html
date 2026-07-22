@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- {{ game_info['title'] }}{% endblock %}
+{% block body_class %}page-game{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+  {% include "_hud.html" %}
+  {% if game_id != 'bonus' %}{% include "_bonus_banner.html" %}{% endif %}
+
+  <div class="game-shell">
+    <div class="game-backdrop-scrim"></div>
+    <div class="game-shell-content">
+      {% block game_header %}
+      <div class="game-header">
+        <span class="game-number">CHALLENGE {{ game_info['number'] }}</span>
+        <h1 class="game-title">{{ game_info['title'] }}</h1>
+      </div>
+      {% endblock %}
+
+      <div class="game-viewport" id="game-viewport" data-game-id="{{ game_id }}" data-token="{{ token }}">
+        {% block game_content %}
+        <div class="placeholder-panel">
+          <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
+          <p class="game-placeholder-copy">Your 30&ndash;60s challenge drops into this panel. Solve it fast!</p>
+        </div>
+        {% endblock %}
+      </div>
+
+      {% block game_controls %}
+      <button type="button" id="complete-btn" class="btn-complete">THWIP! I DID IT</button>
+      {% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% if game_id != 'bonus' %}<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>{% endif %}
+{% block game_scripts %}{% endblock %}
+{% endblock %}

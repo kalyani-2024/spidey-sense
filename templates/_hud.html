@@ -1,0 +1,23 @@
+{# Shared HUD bar: player id + progress tracker dots.
+   Deliberately no elapsed-time readout -- players never see their time or
+   rank, only the admin dashboard does (routes/admin.py). #}
+<div class="hud-bar">
+  <div class="hud-block hud-player">
+    <span class="hud-label">PLAYER</span>
+    <span class="hud-value">{{ player['player_name'] or player['player_id'] }}</span>
+  </div>
+
+  <div class="hud-block hud-progress">
+    <span class="hud-label">PROGRESS</span>
+    <div class="progress-dots">
+      {% for step in main_sequence or ['1','2','3','4'] %}
+        <span class="dot {{ 'dot-done' if step in progress['completed'] else '' }} {{ 'dot-active' if step == player['current_game'] else '' }}"></span>
+      {% endfor %}
+      <span class="dot dot-bonus {{ 'dot-done' if progress['bonus_done'] else '' }} {{ 'dot-active' if player['current_game'] == 'bonus' else '' }}" title="Bonus round">★</span>
+    </div>
+  </div>
+
+  <div class="hud-block hud-logout">
+    <a href="{{ url_for('auth.logout') }}" class="hud-logout-link">LOG OUT</a>
+  </div>
+</div>

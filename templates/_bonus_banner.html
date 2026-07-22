@@ -1,0 +1,19 @@
+{# Full-screen bonus-round alert. Renders hidden unless the bonus is
+   actually available right now; bonus_watcher.js reveals it live (no page
+   reload needed) the instant it unlocks, and hides it again once it expires. #}
+<div
+  id="bonus-banner"
+  class="bonus-banner {{ 'bonus-banner-visible' if bonus['state'] == 'available' else '' }}"
+  data-state="{{ bonus['state'] }}"
+  data-unlock-at="{{ bonus.get('unlock_at', '') }}"
+  data-expires-at="{{ bonus.get('expires_at', '') }}"
+>
+  <div class="bonus-alert-dots"></div>
+  <div class="bonus-alert-siren">! ! ALERT ! !</div>
+  <div class="bonus-alert-pop">SPIDEY-<br>SENSE!!</div>
+  <div class="bonus-alert-sub">SURPRISE BONUS THREAT</div>
+  <a href="{{ url_for('games.play_game', game_id='bonus') }}" class="bonus-alert-cta">
+    TAP TO RESPOND <span class="arrow">&rarr;</span>
+  </a>
+  <span class="bonus-banner-timer" id="bonus-banner-timer"></span>
+</div>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- Get Ready{% endblock %}
+{% block body_class %}page-waiting{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+  {% include "_hud.html" %}
+  {% include "_bonus_banner.html" %}
+
+  <div class="waiting-shell">
+    <div class="waiting-backdrop-art"></div>
+    <div class="waiting-backdrop-scrim"></div>
+    <div class="waiting-shell-content">
+      <div class="waiting-eyebrow">SPIDEY-SENSE RESTING</div>
+      <h1 class="waiting-title">NEXT UP: {{ game_info['number'] }}. {{ game_info['title'] }}</h1>
+
+      <div class="countdown-ring">
+        <span class="countdown-ring-base"></span>
+        <span class="countdown-ring-spin"></span>
+        <span class="countdown-value" id="countdown-value">--:--</span>
+      </div>
+
+      <p class="waiting-copy">Stay alert &mdash; your Spidey-Sense might <b class="tingle-word">tingle</b> at any second&hellip;</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>
+<script>
+  (function () {
+    var unlocksAt = {{ unlocks_at }};
+    var display = document.getElementById('countdown-value');
+
+    function tick() {
+      var remaining = Math.max(0, unlocksAt - (Date.now() / 1000));
+      if (remaining <= 0) {
+        window.location.reload();
+        return;
+      }
+      var m = Math.floor(remaining / 60).toString().padStart(2, '0');
+      var s = Math.floor(remaining % 60).toString().padStart(2, '0');
+      display.textContent = m + ':' + s;
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+{% endblock %}

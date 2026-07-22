@@ -1,0 +1,18 @@
+# Secrets -- never commit real credentials
+.env
+
+# SQLite data (event data, local dev data -- never commit real player data)
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.vscode/

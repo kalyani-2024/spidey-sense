@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}SPIDEY SENSE -- Results{% endblock %}
+{% block body_class %}page-results{% endblock %}
+
+{% block content %}
+<div class="finish-shell">
+  <div class="finish-dots"></div>
+  <div class="finish-top-bar"></div>
+
+  <div class="finish-thwip">THWIP!</div>
+
+  <div class="webgrid-banner finish-banner">
+    <h1 class="webgrid-title finish-banner-title">YOU BEAT THE STREET</h1>
+  </div>
+
+  <div class="hero-spider-frame finish-spider-frame">
+    <div class="hero-spider-glow"></div>
+    <div class="hero-spider-art"></div>
+  </div>
+
+  <p class="finish-copy">Clock stopped. Show this screen at the stall to see if your Spidey-Sense was the fastest.</p>
+  <div class="finish-bonus-tag">BONUS ROUND: {{ 'CLEARED ⭐' if progress['bonus_done'] else 'MISSED' }}</div>
+
+  <a href="{{ url_for('auth.logout') }}" class="finish-play-again">PLAY AGAIN</a>
+</div>
+{% endblock %}
