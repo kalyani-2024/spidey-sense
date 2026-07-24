@@ -352,7 +352,9 @@
     engine.remaining = remaining;
 
     engine.triedGuesses = new Set(Array.isArray(saved.triedGuesses) ? saved.triedGuesses : []);
-    engine.selected = [];
+    const remainingWordsSet = new Set(engine.remaining.map((t) => t.word));
+    const savedSelected = Array.isArray(saved.selectedWords) ? saved.selectedWords : [];
+    engine.selected = savedSelected.filter((w) => remainingWordsSet.has(w)).slice(0, 4);
     return engine;
   };
 
@@ -555,7 +557,8 @@
           mistakesLeft: engine.mistakesLeft,
           solvedGroupNames: engine.solved.map((g) => g.name),
           remainingWords: engine.remaining.map((t) => t.word),
-          triedGuesses: Array.from(engine.triedGuesses)
+          triedGuesses: Array.from(engine.triedGuesses),
+          selectedWords: engine.selected.slice()
         });
       }
 
@@ -598,6 +601,7 @@
           renderer.setSelected(word, !already);
           renderer.setSubmitEnabled(engine.canSubmit());
           if (already) AudioMgr.deselect(); else AudioMgr.select();
+          persist();
         },
 
         onClear() {
@@ -606,6 +610,7 @@
           engine.clearSelection();
           renderer.setSubmitEnabled(false);
           AudioMgr.deselect();
+          persist();
         },
 
         onShuffle() {
@@ -613,6 +618,7 @@
           engine.shuffleRemaining();
           renderer.renderBoard(engine.remaining, engine.selected);
           AudioMgr.shuffle();
+          persist();
         },
 
         async onSubmit() {

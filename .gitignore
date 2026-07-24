@@ -16,3 +16,6 @@ env/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# GAME4:PUZZLE_SOLUTIONS
+**/puzzles.json
