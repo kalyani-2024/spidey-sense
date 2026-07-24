@@ -1,14 +1,284 @@
 {% extends "games/game_base.html" %}
 
 {% block game_content %}
-<div class="placeholder-panel">
-  <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
-  <p class="game-placeholder-copy">
-    <strong>Placeholder for Mini-Game #4: Final Takedown.</strong><br>
-    Mini-game developers: replace this block (and the JS in
-    <code>static/js/game4.js</code>) with the real challenge. When the player
-    finishes, call <code>completeGame('4')</code> from <code>game.js</code>.
-  </p>
+<style>
+  /* ---- GAME 4 scoped styles -- reuses tokens from static/css/style.css ---- */
+  :root {
+    --c4-blue:   #3c7dff;
+    --c4-purple: #a35ce8;
+  }
+
+  .c4-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 4px 4px 8px;
+  }
+
+  .c4-eyebrow {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    letter-spacing: 4px;
+    font-size: 0.7rem;
+    color: var(--gold);
+    text-align: center;
+  }
+
+  .c4-tagline {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: clamp(0.82rem, 2.1vmin, 1rem);
+    color: var(--ink-dim);
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.4;
+    margin: 0 0 2px;
+  }
+
+  /* mistakes / "Web Integrity" */
+  .c4-integrity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.4);
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 14px;
+  }
+  .c4-integrity-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+  }
+  .c4-pips { display: flex; gap: 6px; }
+  .c4-pip {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px rgba(232,35,28,0.6);
+    transition: transform 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+  }
+  .c4-pip.is-lost {
+    background: #2a2540;
+    box-shadow: none;
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+
+  /* solved banners */
+  .c4-solved {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c4-solved-row {
+    border-radius: 12px;
+    border: 3px solid #000;
+    box-shadow: var(--comic-shadow);
+    padding: 10px 14px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    transition-delay: calc(var(--stagger, 0) * 40ms);
+  }
+  .c4-solved-row.is-in { opacity: 1; transform: translateY(0) scale(1); }
+  .c4-solved-name {
+    font-family: 'Bangers', cursive;
+    letter-spacing: 0.5px;
+    font-size: clamp(1rem, 3.2vmin, 1.35rem);
+    color: #05060f;
+  }
+  .c4-solved-words {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: clamp(0.72rem, 2vmin, 0.88rem);
+    color: #05060f;
+    opacity: 0.85;
+  }
+  .diff-easy   { background: var(--gold); }
+  .diff-medium { background: var(--red); color: #fff; }
+  .diff-medium .c4-solved-name,
+  .diff-medium .c4-solved-words { color: #fff; }
+  .diff-hard   { background: var(--c4-blue); }
+  .diff-hard .c4-solved-name,
+  .diff-hard .c4-solved-words { color: #fff; }
+  .diff-expert { background: var(--c4-purple); }
+  .diff-expert .c4-solved-name,
+  .diff-expert .c4-solved-words { color: #fff; }
+
+  /* board */
+  .c4-board {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .c4-tile {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: clamp(0.72rem, 2.6vmin, 0.95rem);
+    line-height: 1.15;
+    color: var(--ink);
+    background: var(--bg-panel-2);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    min-height: 68px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.25s ease;
+  }
+  .c4-tile:active { transform: scale(0.94); }
+  .c4-tile.is-selected {
+    background: var(--red);
+    border-color: #fff;
+    color: #fff;
+    transform: scale(1.03);
+  }
+  .c4-tile.is-shaking { animation: c4-shake 0.42s ease; }
+  .c4-tile.is-correct-flash {
+    animation: c4-glow 0.5s ease;
+  }
+  .c4-tile.is-leaving {
+    opacity: 0;
+    transform: scale(0.7);
+    pointer-events: none;
+  }
+  @keyframes c4-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+  }
+  @keyframes c4-glow {
+    0% { box-shadow: 0 0 0 rgba(120,255,140,0); }
+    50% { box-shadow: 0 0 22px rgba(120,255,140,0.9); border-color: #78ff8c; }
+    100% { box-shadow: 0 0 0 rgba(120,255,140,0); }
+  }
+
+  .c4-error {
+    font-family: 'Barlow', sans-serif;
+    color: var(--ink-dim);
+    text-align: center;
+    padding: 30px 10px;
+  }
+
+  /* controls */
+  .c4-controls {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .c4-btn {
+    font-family: 'Bangers', cursive;
+    letter-spacing: 1px;
+    font-size: clamp(0.9rem, 2.6vmin, 1.15rem);
+    color: var(--ink);
+    background: var(--bg-panel);
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .c4-btn:hover { border-color: var(--gold); }
+  .c4-btn:active { transform: translate(1px, 1px); }
+  .c4-btn-submit {
+    color: #05060f;
+    background: linear-gradient(180deg, var(--gold) 0%, #cc9900 100%);
+    border-color: #000;
+    box-shadow: var(--comic-shadow);
+  }
+  .c4-btn-submit:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* toast */
+  .c4-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translate(-50%, 12px);
+    z-index: 30;
+    background: #05060f;
+    color: var(--gold);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    padding: 10px 20px;
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    max-width: 86vw;
+    text-align: center;
+  }
+  .c4-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+  /* win overlay (brief flourish before completeGame() advances the app) */
+  .c4-win-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 45%, rgba(255,204,51,0.35), rgba(10,10,18,0.94) 70%);
+  }
+  .c4-win-overlay.is-visible { display: flex; }
+  .c4-win-text {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(2.2rem, 9vmin, 4rem);
+    color: #fff;
+    text-shadow: 3px 3px 0 var(--red), 5px 5px 0 #05060f;
+    animation: spx-pop 0.4s ease both;
+  }
+</style>
+
+<div class="c4-shell"
+     data-game4-root
+     data-puzzle-url="{{ url_for('static', filename='games/game4/puzzles.json') }}"
+     data-puzzle-fallback-url="{{ url_for('static', filename='games/game4/puzzles.example.json') }}">
+  <div class="c4-eyebrow">GAME 4</div>
+  <p class="c4-tagline">Use your Spider-Sense to uncover four hidden connections.</p>
+
+  <div class="c4-integrity">
+    <span class="c4-integrity-label">WEB INTEGRITY</span>
+    <span class="c4-pips" data-mistakes></span>
+  </div>
+
+  <div class="c4-solved" data-solved></div>
+
+  <div class="c4-board" data-board></div>
+
+  <div class="c4-controls">
+    <button type="button" class="c4-btn" data-shuffle>Shuffle</button>
+    <button type="button" class="c4-btn" data-clear>Clear</button>
+    <button type="button" class="c4-btn c4-btn-submit" data-submit disabled>Submit</button>
+  </div>
+</div>
+
+<div class="c4-toast" data-toast></div>
+<div class="c4-win-overlay" data-win-overlay>
+  <div class="c4-win-text">WEB COMPLETE!</div>
 </div>
 {% endblock %}
 

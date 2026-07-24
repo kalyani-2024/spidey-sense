@@ -1,0 +1,32 @@
+{
+  "_note": "SAMPLE BANK -- for local development only. This file is committed to git. The real 36-puzzle bank (puzzles.json) is NOT committed.game4.js automatically falls back to this file if puzzles.json is missing, so the game still runs for anyone who clones the repo.",
+  "puzzles": [
+    {
+      "id": "sample-1",
+      "groups": [
+        { "name": "Web Browsers",        "difficulty": "easy",   "words": ["Chrome", "Firefox", "Safari", "Edge"] },
+        { "name": "Search Engines",      "difficulty": "medium", "words": ["Google", "Bing", "DuckDuckGo", "Yahoo"] },
+        { "name": "Operating Systems",   "difficulty": "hard",   "words": ["Windows", "Linux", "macOS", "Android"] },
+        { "name": "Programming Languages","difficulty": "expert","words": ["Python", "Java", "Rust", "Go"] }
+      ]
+    },
+    {
+      "id": "sample-2",
+      "groups": [
+        { "name": "Social Media Platforms", "difficulty": "easy",   "words": ["Instagram", "Twitter", "TikTok", "Snapchat"] },
+        { "name": "Video Streaming Services","difficulty": "medium", "words": ["Netflix", "YouTube", "Hulu", "Disney+"] },
+        { "name": "Cloud Providers",         "difficulty": "hard",   "words": ["AWS", "Azure", "GCP", "IBM Cloud"] },
+        { "name": "Version Control Hosts",    "difficulty": "expert", "words": ["GitHub", "GitLab", "Bitbucket", "SourceForge"] }
+      ]
+    },
+    {
+      "id": "sample-3",
+      "groups": [
+        { "name": "Input Devices",       "difficulty": "easy",   "words": ["Keyboard", "Mouse", "Trackpad", "Joystick"] },
+        { "name": "Storage Devices",     "difficulty": "medium", "words": ["SSD", "HDD", "USB Drive", "SD Card"] },
+        { "name": "Data Structures",     "difficulty": "hard",   "words": ["Array", "Stack", "Queue", "Tree"] },
+        { "name": "Sorting Algorithms",  "difficulty": "expert", "words": ["Bubble Sort", "Quick Sort", "Merge Sort", "Heap Sort"] }
+      ]
+    }
+  ]
+}
