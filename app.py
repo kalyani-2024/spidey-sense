@@ -42,6 +42,7 @@ from routes.games import games_bp  # noqa: E402
 from routes.auth import auth_bp  # noqa: E402
 from routes.scan import scan_bp  # noqa: E402
 from routes.admin import admin_bp  # noqa: E402
+from routes.demo import demo_bp  # noqa: E402
 
 
 def create_app():
@@ -57,6 +58,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(scan_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(demo_bp)
 
     return app
 

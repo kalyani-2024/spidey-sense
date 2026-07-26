@@ -117,7 +117,7 @@
 
   /* ---------- breaking-news ticker ---------- */
   .g2-ticker {
-    flex: 0 0 auto; display: flex; align-items: center; overflow: hidden;
+    flex: 0 0 auto; display: flex; align-items: center;
     background: var(--bugle-red); color: #fff; border-bottom: 2px solid var(--ink); height: 22px;
   }
   .g2-ticker-badge {
@@ -126,14 +126,23 @@
     font-family: 'Barlow Condensed', sans-serif; font-weight: 800; letter-spacing: 1px;
     text-transform: uppercase; font-size: 0.56rem;
   }
+  /* the scrolling track is clipped by THIS wrapper, not by .g2-ticker itself --
+     .g2-ticker also contains the badge as a sibling, and overflow:hidden on
+     the shared row doesn't stop the animated track from painting over it
+     (it's later in DOM/paint order); a dedicated viewport box keeps the
+     track's clip boundary flush with the badge's edge instead. */
+  .g2-ticker-viewport {
+    flex: 1 1 auto; min-width: 0; height: 100%; overflow: hidden;
+    display: flex; align-items: center;
+  }
   .g2-ticker-track {
     display: inline-flex; white-space: nowrap; will-change: transform;
-    animation: g2-marquee 26s linear infinite;
+    animation: g2-marquee linear infinite;
     font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
-    font-size: 0.66rem; letter-spacing: 0.4px; padding-left: 100%;
+    font-size: 0.66rem; letter-spacing: 0.4px;
   }
   .g2-ticker:hover .g2-ticker-track { animation-play-state: paused; }
-  @keyframes g2-marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+  @keyframes g2-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
   /* ---------- scrolling article region ---------- */
   .g2-screen {
@@ -256,6 +265,8 @@
     white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; text-align: center; max-width: 90%;
   }
   .g2-app.is-tingling .g2-tingle-cap { opacity: 1; }
+  .g2-hint-strong { outline-color: var(--gold) !important; }
+  .g2-app.is-tingling-strong .g2-tingle-cap { background: rgba(200,140,0,0.96); }
 
   /* ---------- Green Goblin heckler ---------- */
   .g2-goblin {
@@ -376,7 +387,9 @@
 
   <div class="g2-ticker" aria-hidden="true">
     <span class="g2-ticker-badge">Breaking</span>
-    <div class="g2-ticker-track" id="g2-ticker-track"></div>
+    <div class="g2-ticker-viewport">
+      <div class="g2-ticker-track" id="g2-ticker-track"></div>
+    </div>
   </div>
 
   <div class="g2-screen" id="g2-screen"><!-- pages rendered by game2.js --></div>
