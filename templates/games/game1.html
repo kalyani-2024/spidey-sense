@@ -1,17 +1,159 @@
 {% extends "games/game_base.html" %}
 
 {% block game_content %}
-<div class="placeholder-panel">
-  <div class="placeholder-headline">MINI-GAME LOADS HERE</div>
-  <p class="game-placeholder-copy">
-    <strong>Placeholder for Mini-Game #1: Web Shooter Reflex.</strong><br>
-    Mini-game developers: replace this block (and the JS in
-    <code>static/js/game1.js</code>) with the real challenge. When the player
-    finishes, call <code>completeGame('1')</code> from <code>game.js</code>.
-  </p>
-</div>
-{% endblock %}
+<style>
+  #hsg-root{
+    --bg:oklch(0.16 0.06 22); --card:oklch(0.21 0.05 20);
+    --primary:oklch(0.58 0.25 27); --accent:oklch(0.86 0.19 90);
+    --accent-fg:oklch(0.2 0.05 40); --newspaper:oklch(0.94 0.02 90);
+    --terminal:oklch(0.17 0.03 240); --terminal-fg:oklch(0.88 0.12 150);
+    --crash:oklch(0.63 0.26 27); --gold:oklch(0.82 0.16 75); --acm:oklch(0.62 0.13 220);
 
-{% block game_scripts %}
+    position:relative; max-width:380px;margin:0 auto;padding:14px 10px 20px;
+    box-sizing:border-box; overflow:hidden; border-radius:18px;
+    background:linear-gradient(to bottom, oklch(0.2 0.08 22 / .35), oklch(0.13 0.06 20 / .7)),
+               url("{{ url_for('static', filename='games/game1/spider-web-bg.jpg') }}");
+    background-size:cover; background-position:center; color:var(--newspaper);
+    font-family:'Bangers','Impact',sans-serif;
+  }
+
+  #hsg-root .hsg-inner{position:relative;z-index:5;display:flex;flex-direction:column;gap:10px;}
+
+  /* header */
+  .hsg-presented{display:flex;align-items:center;justify-content:flex-end;gap:6px;}
+  .hsg-presented span{font-family:sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.2em;opacity:.85;}
+  .hsg-presented img{height:30px;width:30px;border-radius:50%;}
+  .hsg-titleblock{text-align:center;}
+  .hsg-kicker{font-size:.7rem;letter-spacing:.4em;color:var(--accent);margin:0;}
+  .hsg-title{font-size:1.9rem;line-height:.9;letter-spacing:1px;margin:2px 0;}
+  .hsg-title .a{color:var(--primary);text-shadow:2px 2px 0 rgba(0,0,0,.4);}
+  .hsg-title .b{color:var(--newspaper);opacity:.6;}
+  .hsg-title .c{color:var(--acm);text-shadow:2px 2px 0 rgba(0,0,0,.4);}
+  .hsg-sub{font-family:sans-serif;font-size:.68rem;line-height:1.3;opacity:.85;max-width:280px;margin:4px auto 0;}
+
+  /* lives */
+  .hsg-lives{display:flex;justify-content:center;gap:6px;}
+  .hsg-lives span{font-size:1rem;}
+  .hsg-lives span.on{filter:none;}
+  .hsg-lives span.off{opacity:.3;filter:grayscale(1);}
+
+  /* crash monitor */
+  .hsg-monitor{max-width:320px;margin:0 auto;width:100%;}
+  .hsg-bezel{border:4px solid oklch(0.86 0.19 90 / .7);border-radius:16px;background:var(--card);padding:8px;box-shadow:0 0 24px -4px var(--primary);}
+  .hsg-bezel.shake{animation:hsg-shake .4s ease-in-out;}
+  @keyframes hsg-shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .hsg-screen{position:relative;overflow:hidden;border-radius:10px;background:var(--terminal);padding:10px;font-family:monospace;}
+  .hsg-titlebar{display:flex;justify-content:space-between;font-size:.6rem;letter-spacing:.15em;border-bottom:1px solid oklch(0.88 0.12 150 / .25);padding-bottom:6px;margin-bottom:6px;color:var(--terminal-fg);}
+  .hsg-titlebar.crashed{color:var(--crash);border-color:oklch(0.63 0.26 27 / .4);}
+  .hsg-console{min-height:100px;}
+  .hsg-console p{margin:0;font-size:.72rem;color:oklch(0.88 0.12 150 / .8);line-height:1.5;}
+  .hsg-errline{display:flex;gap:6px;align-items:center;font-size:.72rem;color:var(--terminal-fg);margin:2px 0;}
+  .hsg-errline.fatal{font-weight:700;color:var(--crash);}
+  .hsg-errline .code{opacity:.7;}
+  .hsg-crashmeter-label{text-align:center;font-size:.55rem;letter-spacing:.25em;opacity:.5;margin-top:6px;}
+  .hsg-crashmeter{display:flex;justify-content:center;gap:6px;border-top:1px solid oklch(0.88 0.12 150 / .2);padding-top:6px;margin-top:4px;}
+  .hsg-crashmeter span{width:19px;height:19px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:.72rem;background:oklch(0.88 0.12 150 / .07);color:oklch(0.88 0.12 150 / .3);}
+  .hsg-crashmeter span.active{background:var(--crash);color:#fff;box-shadow:0 0 10px var(--crash);}
+  .hsg-vents{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 0;}
+  .hsg-vents .dots{display:flex;gap:5px;}
+  .hsg-vents .dot{width:6px;height:6px;border-radius:50%;background:var(--acm);}
+  .hsg-vents .brand{font-size:.65rem;color:var(--gold);}
+  .hsg-neck{width:56px;height:22px;margin:2px auto 0;border-left:4px solid oklch(0.86 0.19 90 / .7);border-right:4px solid oklch(0.86 0.19 90 / .7);background:var(--card);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);}
+  .hsg-base{width:140px;height:10px;margin:-2px auto 0;border:4px solid oklch(0.86 0.19 90 / .7);border-radius:8px;background:var(--card);}
+
+  /* hint */
+  .hsg-hint{max-width:320px;margin:0 auto;width:100%;box-sizing:border-box;border:2px dashed oklch(0.86 0.19 90 / .6);border-radius:8px;background:oklch(0.21 0.05 20 / .7);padding:8px 10px;}
+  .hsg-hint-cat{font-size:.7rem;letter-spacing:.15em;color:var(--accent);}
+  .hsg-hint-text{font-family:sans-serif;font-size:.72rem;margin:3px 0 0;line-height:1.3;}
+
+  /* word display (now inside the terminal screen) */
+  .hsg-word{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:6px 0;border-top:1px solid oklch(0.88 0.12 150 / .2);margin-top:2px;}
+  .hsg-letter{display:flex;flex-direction:column;align-items:center;}
+  .hsg-letter .ch{height:24px;display:flex;align-items:flex-end;font-size:1.3rem;color:var(--terminal-fg);}
+  .hsg-letter .ch.missed{color:var(--crash);}
+  .hsg-letter .bar{height:2px;width:18px;border-radius:2px;background:var(--accent);}
+
+  /* keyboard */
+  .hsg-keys{display:flex;flex-direction:column;gap:5px;}
+  .hsg-row{display:flex;justify-content:center;gap:4px;}
+  .hsg-key{flex:1;max-width:34px;height:36px;border:none;border-radius:6px;background:var(--newspaper);color:oklch(0.2 0.02 40);font-family:'Bangers',cursive;font-size:1rem;}
+  .hsg-key.correct{background:var(--accent);color:var(--accent-fg);}
+  .hsg-key.wrong{background:oklch(0.63 0.26 27 / .8);color:#fff;opacity:.6;}
+  .hsg-key:disabled{opacity:.35;}
+
+  /* overlay */
+  .hsg-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .hsg-overlay .backdrop{position:absolute;inset:0;background:oklch(0.16 0.06 22 / .88);}
+  .hsg-modal{position:relative;max-width:280px;width:100%;border:4px dashed var(--accent);border-radius:16px;background:var(--card);padding:20px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.5);}
+  .hsg-modal .headline{font-size:2.4rem;margin:0;}
+  .hsg-modal .headline.won{color:var(--accent);} .hsg-modal .headline.lost{color:var(--crash);}
+  .hsg-modal .sub{font-size:1.1rem;margin:4px 0 0;}
+  .hsg-modal .reveal{margin:14px 0;border:1px solid oklch(0.4 0.08 30);border-radius:8px;background:oklch(0.26 0.05 22 / .6);padding:8px;}
+  .hsg-modal .reveal .cat{font-family:sans-serif;font-size:.6rem;letter-spacing:.2em;opacity:.7;text-transform:uppercase;}
+  .hsg-modal .reveal .wrd{font-size:1.4rem;margin-top:2px;}
+  .hsg-again{width:100%;border:none;border-radius:10px;background:var(--primary);color:#fff;font-family:'Bangers',cursive;font-size:1.1rem;padding:10px 0;}
+</style>
+
+<div id="hsg-root">
+  <div class="hsg-inner">
+    <header>
+      <div class="hsg-presented">
+        <span>PRESENTED BY</span>
+        <img src="{{ url_for('static', filename='games/game1/acm-council-logo.png') }}" alt="ACM">
+      </div>
+      <div class="hsg-titleblock">
+        <p class="hsg-kicker">CHALLENGE 01</p>
+        <h1 class="hsg-title"><span class="a">HANG</span><span class="b">-</span><span class="c">SPIDER</span></h1>
+        <p class="hsg-sub">A villain scrambled the city&rsquo;s mainframe. Sling a web at one letter at a time to crack the codeword. Every miss lands a hit on the system. Five strikes and it&rsquo;s lights out.</p>
+      </div>
+    </header>
+
+    <div class="hsg-lives" id="hsg-lives"></div>
+
+    <div class="hsg-hint">
+      <div class="hsg-hint-cat" id="hsg-hint-cat">LOADING&hellip;</div>
+      <p class="hsg-hint-text" id="hsg-hint-text">Booting the case file&hellip;</p>
+    </div>
+
+    <div class="hsg-monitor">
+      <div class="hsg-bezel" id="hsg-bezel">
+        <div class="hsg-screen">
+          <div class="hsg-titlebar" id="hsg-titlebar">
+            <span>OSCORP // SYS-MONITOR</span>
+            <span id="hsg-status">ONLINE</span>
+          </div>
+          <div class="hsg-console" id="hsg-console">
+            <p>&gt; system stable.<br>&gt; awaiting operator input_</p>
+          </div>
+          <div class="hsg-word" id="hsg-word"></div>
+          <div class="hsg-crashmeter-label">CRITICAL FAILURE</div>
+          <div class="hsg-crashmeter" id="hsg-crashmeter"></div>
+        </div>
+        <div class="hsg-vents">
+          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span class="brand">BUGLE-TRON 3000</span>
+        </div>
+      </div>
+      <div class="hsg-neck"></div>
+      <div class="hsg-base"></div>
+    </div>
+
+    <div class="hsg-keys" id="hsg-keys"></div>
+  </div>
+
+  <div class="hsg-overlay" id="hsg-overlay" style="display:none;">
+    <div class="backdrop"></div>
+    <div class="hsg-modal">
+      <p class="headline" id="hsg-headline"></p>
+      <p class="sub" id="hsg-subline"></p>
+      <div class="reveal">
+        <p class="cat" id="hsg-reveal-cat"></p>
+        <p class="wrd" id="hsg-reveal-word"></p>
+      </div>
+      <button class="hsg-again" id="hsg-again" style="display:none;">&#8635; Sling Again</button>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/game1.js') }}"></script>
 {% endblock %}
