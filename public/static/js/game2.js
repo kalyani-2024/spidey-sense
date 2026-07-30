@@ -83,6 +83,25 @@
     "Tick, tock. The scoop stays buried unless you can find the number I hid. Good luck <i>reading</i>."
   ];
 
+  // live ticker flashes: the breaking-news strip reacts to what the player
+  // just did, so the site feels alive without adding any new UI surface or
+  // extra reading -- it's peripheral flavor, easy to ignore.
+  var TICKER_WRONG_FLASHES = [
+    "MYSTERY SLEUTH STRIKES OUT AGAIN AT THE MORGUE",
+    "MORGUE CLERK: &lsquo;still no luck out there, still guessing&rsquo;",
+    "ANOTHER WRONG NUMBER PUNCHED INTO THE ARCHIVE"
+  ];
+  var TICKER_DECOY_FLASHES = [
+    "DEAD-END FILE SURFACES AT THE MORGUE, SOURCES SAY",
+    "ANOTHER RETRACTED REPORT PULLED &mdash; WRONG ONE",
+    "MORGUE TRAFFIC UP AS SOMEONE DIGS THROUGH OLD FILES"
+  ];
+  var TICKER_GOBLIN_FLASHES = [
+    "GREEN GOBLIN SPOTTED LURKING NEAR BUGLE OFFICES",
+    "WITNESSES REPORT CACKLING HEARD OVER MIDTOWN, AGAIN",
+    "OSCORP DECLINES TO COMMENT ON GOBLIN SIGHTING"
+  ];
+
   // where the case number hides this play; how Home points (a riddle, not a
   // named tab -- the player has to connect it to a section themselves); the
   // two-tier hint text (nudge = vague stage-1, msg = explicit stage-2)
@@ -124,11 +143,58 @@
   // ---- runtime state ----------------------------------------------------
   var app, screen, urlBar, nav, dateEl;
   var hintTimer1 = null, hintTimer2 = null, stallTimer = null, urlTyper = null, won = false, goblinShown = false;
-  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home";
+  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home", clueGlimpsed = false;
+  var tickerItems = TICKER.slice();
 
   function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
   function pick(arr) { return arr[ri(0, arr.length - 1)]; }
   function caseTag(str) { return '<span class="g2-case">' + (str || buriedCase) + "</span>"; }
+
+  // ---- sound: tiny synthesized WebAudio blips, no asset files -----------
+  // Muting persists per-device (a shared event phone shouldn't relearn the
+  // preference every play) and audio only ever plays from a user gesture
+  // (tap handlers), so autoplay policies never block it.
+  var audioCtx = null, muted = false;
+  try { muted = localStorage.getItem("g2-muted") === "1"; } catch (e) { /* private mode etc -- default unmuted */ }
+  function ensureAudio() {
+    if (audioCtx) return audioCtx;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try { audioCtx = new Ctx(); } catch (e) { audioCtx = null; }
+    return audioCtx;
+  }
+  function beep(freq, dur, type, delay, peak) {
+    if (muted) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type || "square";
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(peak || 0.05, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.03);
+  }
+  function sfxWrong() { beep(160, 0.16, "sawtooth", 0, 0.05); beep(105, 0.22, "sawtooth", 0.08, 0.05); }
+  function sfxDecoyOpen() { beep(320, 0.09, "square", 0, 0.035); beep(230, 0.13, "square", 0.07, 0.035); }
+  function sfxGoblin() { beep(130, 0.09, "sawtooth", 0, 0.05); beep(190, 0.09, "sawtooth", 0.09, 0.05); beep(95, 0.18, "sawtooth", 0.18, 0.05); }
+  function sfxFound() { beep(392, 0.1, "triangle", 0, 0.05); beep(587.33, 0.22, "triangle", 0.09, 0.055); }
+  function sfxWin() { beep(523.25, 0.11, "square", 0, 0.05); beep(659.25, 0.11, "square", 0.1, 0.05); beep(783.99, 0.24, "square", 0.2, 0.06); }
+  function setMuteUI() {
+    var btn = document.getElementById("g2-mute");
+    if (!btn) return;
+    btn.innerHTML = muted ? "&#128263;" : "&#128266;";
+    btn.classList.toggle("is-muted", muted);
+    btn.setAttribute("aria-pressed", muted ? "true" : "false");
+  }
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem("g2-muted", muted ? "1" : "0"); } catch (e) { /* ignore */ }
+    setMuteUI();
+    if (!muted) beep(500, 0.05, "square", 0, 0.04);
+  }
 
   var NORMAL_TITLES = [
     "Rhino escapes zoo, blames &ldquo;the wall&rdquo;",
@@ -143,9 +209,23 @@
     "Op-ed: Vigilantes are ruining this city"
   ];
 
+  // words hidden under each black bar -- purely decorative flavor (which
+  // word is under which bar never affects the puzzle: every sealed row is a
+  // dead end regardless), but holding a bar down to "declassify" it makes
+  // the archive list a small tactile toy instead of a flat wall of black
+  // rectangles.
+  var REDACT_WORDS = [
+    "MENACE", "WALL-CRAWLER", "WEB-FLUID", "OSCORP", "THE MASK", "VIGILANTE",
+    "THE SUIT", "GOBLIN", "THE PHOTO", "COSTUME", "THE WEBS", "TRACKER"
+  ];
   function redactBars() {
     var n = ri(3, 4), out = "[RETRACTED] ";
-    for (var i = 0; i < n; i++) out += '<span class="g2-redact" style="width:' + ri(22, 48) + 'px"></span>';
+    for (var i = 0; i < n; i++) {
+      var w = pick(REDACT_WORDS);
+      out += '<span class="g2-redact" data-word="' + w + '" tabindex="0" role="button" ' +
+        'aria-label="Hold to declassify"><span class="g2-redact-word">' + w +
+        '</span><span class="g2-redact-cover"></span></span>';
+    }
     return out;
   }
 
@@ -159,6 +239,7 @@
     clueSpot = pick(["corrections", "caption", "comment", "ad"]);
     lookupWrongs = 0;
     goblinTaunted = false;
+    clueGlimpsed = false;
 
     // 1-2 decoy case numbers, planted on OTHER sections in a context that's
     // clearly unrelated to the Spider-Man scoop on a careful read -- so
@@ -380,6 +461,7 @@
             '<div class="g2-404-title">Page Not Found</div>' +
             '<p class="g2-404-copy">&hellip;but you found <b>me.</b> This is the scoop Jonah tried ' +
               'to bury &mdash; and I hear the Goblin&#39;s hopping mad you dug up the number. Nice work, kid.</p>' +
+            corkboard() +
             '<p class="g2-404-sign">&mdash; your friendly neighborhood Spider-Man</p>' +
             '<button type="button" class="g2-win" id="g2-win">Case Closed &#10003;</button>' +
           '</div>'
@@ -387,6 +469,26 @@
       }
     }
   };
+
+  // ---- win-screen recap: a 3-pin corkboard instead of more prose, so the
+  // "how you cracked it" payoff is a quick visual, not extra reading.
+  var CLUE_ICON = { corrections: "&#128240;", caption: "&#128248;", comment: "&#128172;", ad: "&#128227;" };
+  var CLUE_LABEL = { corrections: "Corrections", caption: "Front Page", comment: "City Comments", ad: "Classifieds" };
+  function corkboard() {
+    return (
+      '<div class="g2-corkboard">' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico" aria-hidden="true">' + CLUE_ICON[clueSpot] + '</span>' +
+          '<span class="g2-cork-lbl">' + CLUE_LABEL[clueSpot] + '</span></div>' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico g2-cork-case">' + buriedCase + '</span>' +
+          '<span class="g2-cork-lbl">Case File</span></div>' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico" aria-hidden="true">&#128375;&#65039;</span>' +
+          '<span class="g2-cork-lbl">Busted</span></div>' +
+      '</div>'
+    );
+  }
 
   var ACTIVE_FOR = { story: "archive", sealed: "archive" };
 
@@ -436,6 +538,28 @@
     app.classList.add("is-tingling");
     app.classList.toggle("is-tingling-strong", !!h.strong);
   }
+  // ---- tier-0 cue: a barely-there shimmer the FIRST time the true clue box
+  // scrolls into view, well before the timed hints (armHint) arm at all. It's
+  // a single soft pulse, not the persistent red/gold outline -- reward for
+  // reading carefully, not a shortcut, and it never repeats once glimpsed.
+  function wireClueGlimpse() {
+    if (clueGlimpsed || won) return;
+    var el = document.getElementById("g2-clue");
+    if (!el || !("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) {
+          clueGlimpsed = true;
+          el.classList.add("g2-clue-glimpse");
+          setTimeout(function () { el.classList.remove("g2-clue-glimpse"); }, 900);
+          io.disconnect();
+          break;
+        }
+      }
+    }, { root: screen, threshold: 0.6 });
+    io.observe(el);
+  }
+
   function clearHint() {
     if (hintTimer1) { clearTimeout(hintTimer1); hintTimer1 = null; }
     if (hintTimer2) { clearTimeout(hintTimer2); hintTimer2 = null; }
@@ -468,6 +592,8 @@
     if (!g || !m || won) return;
     m.innerHTML = msg;
     g.classList.add("is-open");
+    sfxGoblin();
+    flashTicker(pick(TICKER_GOBLIN_FLASHES));
   }
   function hideGoblin() { var g = document.getElementById("g2-goblin"); if (g) g.classList.remove("is-open"); }
 
@@ -492,9 +618,11 @@
     for (var i = 0; i < archiveRows.length; i++) {
       if (archiveRows[i].caseStr === "F-" + val) { hit = archiveRows[i]; break; }
     }
-    if (hit) { go(hit.type === "sealed" ? "sealed" : "story"); return; }
+    if (hit) { sfxDecoyOpen(); flashTicker(pick(TICKER_DECOY_FLASHES)); go(hit.type === "sealed" ? "sealed" : "story"); return; }
 
     lookupWrongs++;
+    sfxWrong();
+    if (val) flashTicker(pick(TICKER_WRONG_FLASHES));
     var box = document.getElementById("g2-lookup");
     if (box) { box.classList.remove("g2-shake"); void box.offsetWidth; box.classList.add("g2-shake"); }
     if (msg) msg.textContent = val ? "No file matches #F-" + val + " in the morgue." : "Enter the 4-digit case number.";
@@ -509,6 +637,7 @@
     if (!page || won) return;
     currentPageId = pageId;
     clearHint();
+    if (pageId === "notfound") sfxFound();
     app.classList.toggle("is-404", pageId === "notfound");
     screen.innerHTML = page.html();
     screen.scrollTop = 0;
@@ -517,6 +646,7 @@
     setActiveTab(pageId);
     pulseLoadbar();
     armHint(pageId);
+    wireClueGlimpse();
     if (pageId === "archive") {
       var inp = document.getElementById("g2-lookup-input");
       if (inp) inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); doPull(); } });
@@ -527,6 +657,7 @@
   function win() {
     if (won) return;
     won = true;
+    sfxWin();
     clearHint();
     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
     var btn = document.getElementById("g2-win");
@@ -558,6 +689,41 @@
     go(dest);
   }
 
+  // ---- redaction bars: hold to declassify --------------------------------
+  var REDACT_HOLD_MS = 420, REDACT_RESEAL_MS = 1500;
+  var redactHoldTimer = null, redactHoldEl = null;
+  function redactCancel() {
+    if (redactHoldTimer) { clearTimeout(redactHoldTimer); redactHoldTimer = null; }
+    if (redactHoldEl) { redactHoldEl.classList.remove("is-holding"); redactHoldEl = null; }
+  }
+  function redactPeel(el) {
+    if (redactHoldTimer) { clearTimeout(redactHoldTimer); redactHoldTimer = null; }
+    redactHoldEl = null;
+    el.classList.remove("is-holding");
+    el.classList.add("is-peeled");
+    setTimeout(function () { el.classList.remove("is-peeled"); }, REDACT_RESEAL_MS);
+  }
+  function wireRedactHold() {
+    app.addEventListener("pointerdown", function (e) {
+      var el = e.target.closest(".g2-redact");
+      if (!el || el.classList.contains("is-peeled")) return;
+      redactCancel();
+      redactHoldEl = el;
+      el.classList.add("is-holding");
+      redactHoldTimer = setTimeout(function () { redactPeel(el); }, REDACT_HOLD_MS);
+    });
+    ["pointerup", "pointercancel"].forEach(function (evtName) {
+      app.addEventListener(evtName, function () { redactCancel(); });
+    });
+    app.addEventListener("keydown", function (e) {
+      var el = e.target;
+      if ((e.key === "Enter" || e.key === " ") && el.classList && el.classList.contains("g2-redact") && !el.classList.contains("is-peeled")) {
+        e.preventDefault();
+        redactPeel(el);
+      }
+    });
+  }
+
   function setDate() {
     if (!dateEl) return;
     try {
@@ -571,7 +737,7 @@
     var track = document.getElementById("g2-ticker-track");
     if (!track) return;
     var one = "";
-    for (var i = 0; i < TICKER.length; i++) one += '<span style="padding:0 22px">&#9670; ' + TICKER[i] + "</span>";
+    for (var i = 0; i < tickerItems.length; i++) one += '<span style="padding:0 22px">&#9670; ' + tickerItems[i] + "</span>";
     track.innerHTML = one + one;
     // duration is derived from the actual rendered width of one copy so the
     // loop always completes a clean pass regardless of ticker content length
@@ -580,6 +746,17 @@
     var oneCopyWidth = track.scrollWidth / 2;
     var duration = oneCopyWidth / TICKER_SPEED_PX_S;
     track.style.animationDuration = (isFinite(duration) && duration > 0 ? duration : 18) + "s";
+  }
+  // the ticker reacts to what the player just did -- a wrong guess, a decoy
+  // opened, the Goblin showing up -- so the site feels alive without adding
+  // any new reading or UI surface. Capped so it can't grow unbounded over a
+  // long, guess-heavy play.
+  function flashTicker(text) {
+    tickerItems.unshift(text);
+    if (tickerItems.length > 9) tickerItems.length = 9;
+    buildTicker();
+    var t = document.getElementById("g2-ticker-badge");
+    if (t) { t.classList.remove("g2-ticker-pop"); void t.offsetWidth; t.classList.add("g2-ticker-pop"); }
   }
 
   function wireEasterEgg() {
@@ -613,10 +790,13 @@
     wireEasterEgg();
 
     app.addEventListener("click", onTap);
+    wireRedactHold();
     var goblin = document.getElementById("g2-goblin");
     if (goblin) goblin.addEventListener("click", function (e) {
       if (e.target === goblin || e.target.id === "g2-goblin-x") hideGoblin();
     });
+    var muteBtn = document.getElementById("g2-mute");
+    if (muteBtn) { setMuteUI(); muteBtn.addEventListener("click", toggleMute); }
 
     go("home");
   });
