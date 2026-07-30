@@ -131,6 +131,14 @@
     font-family: 'Barlow Condensed', sans-serif; font-weight: 800; letter-spacing: 1px;
     text-transform: uppercase; font-size: 0.56rem;
   }
+  /* one-shot pop when a live event (wrong guess, decoy, Goblin) injects a
+     fresh headline into the ticker -- draws the eye without new UI. */
+  .g2-ticker-badge.g2-ticker-pop { animation: g2-ticker-pop 0.55s ease; }
+  @keyframes g2-ticker-pop {
+    0% { background: var(--ink); color: var(--gold); transform: scale(1); }
+    35% { background: var(--gold); color: var(--ink); transform: scale(1.12); }
+    100% { background: var(--ink); color: var(--gold); transform: scale(1); }
+  }
   /* the scrolling track is clipped by THIS wrapper, not by .g2-ticker itself --
      .g2-ticker also contains the badge as a sibling, and overflow:hidden on
      the shared row doesn't stop the animated track from painting over it
@@ -397,7 +405,7 @@
   </nav>
 
   <div class="g2-ticker" aria-hidden="true">
-    <span class="g2-ticker-badge">Breaking</span>
+    <span class="g2-ticker-badge" id="g2-ticker-badge">Breaking</span>
     <div class="g2-ticker-viewport">
       <div class="g2-ticker-track" id="g2-ticker-track"></div>
     </div>

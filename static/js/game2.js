@@ -83,6 +83,25 @@
     "Tick, tock. The scoop stays buried unless you can find the number I hid. Good luck <i>reading</i>."
   ];
 
+  // live ticker flashes: the breaking-news strip reacts to what the player
+  // just did, so the site feels alive without adding any new UI surface or
+  // extra reading -- it's peripheral flavor, easy to ignore.
+  var TICKER_WRONG_FLASHES = [
+    "MYSTERY SLEUTH STRIKES OUT AGAIN AT THE MORGUE",
+    "MORGUE CLERK: &lsquo;still no luck out there, still guessing&rsquo;",
+    "ANOTHER WRONG NUMBER PUNCHED INTO THE ARCHIVE"
+  ];
+  var TICKER_DECOY_FLASHES = [
+    "DEAD-END FILE SURFACES AT THE MORGUE, SOURCES SAY",
+    "ANOTHER RETRACTED REPORT PULLED &mdash; WRONG ONE",
+    "MORGUE TRAFFIC UP AS SOMEONE DIGS THROUGH OLD FILES"
+  ];
+  var TICKER_GOBLIN_FLASHES = [
+    "GREEN GOBLIN SPOTTED LURKING NEAR BUGLE OFFICES",
+    "WITNESSES REPORT CACKLING HEARD OVER MIDTOWN, AGAIN",
+    "OSCORP DECLINES TO COMMENT ON GOBLIN SIGHTING"
+  ];
+
   // where the case number hides this play; how Home points (a riddle, not a
   // named tab -- the player has to connect it to a section themselves); the
   // two-tier hint text (nudge = vague stage-1, msg = explicit stage-2)
@@ -125,6 +144,7 @@
   var app, screen, urlBar, nav, dateEl;
   var hintTimer1 = null, hintTimer2 = null, stallTimer = null, urlTyper = null, won = false, goblinShown = false;
   var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home";
+  var tickerItems = TICKER.slice();
 
   function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
   function pick(arr) { return arr[ri(0, arr.length - 1)]; }
@@ -515,6 +535,7 @@
     m.innerHTML = msg;
     g.classList.add("is-open");
     sfxGoblin();
+    flashTicker(pick(TICKER_GOBLIN_FLASHES));
   }
   function hideGoblin() { var g = document.getElementById("g2-goblin"); if (g) g.classList.remove("is-open"); }
 
@@ -539,10 +560,11 @@
     for (var i = 0; i < archiveRows.length; i++) {
       if (archiveRows[i].caseStr === "F-" + val) { hit = archiveRows[i]; break; }
     }
-    if (hit) { sfxDecoyOpen(); go(hit.type === "sealed" ? "sealed" : "story"); return; }
+    if (hit) { sfxDecoyOpen(); flashTicker(pick(TICKER_DECOY_FLASHES)); go(hit.type === "sealed" ? "sealed" : "story"); return; }
 
     lookupWrongs++;
     sfxWrong();
+    if (val) flashTicker(pick(TICKER_WRONG_FLASHES));
     var box = document.getElementById("g2-lookup");
     if (box) { box.classList.remove("g2-shake"); void box.offsetWidth; box.classList.add("g2-shake"); }
     if (msg) msg.textContent = val ? "No file matches #F-" + val + " in the morgue." : "Enter the 4-digit case number.";
@@ -621,7 +643,7 @@
     var track = document.getElementById("g2-ticker-track");
     if (!track) return;
     var one = "";
-    for (var i = 0; i < TICKER.length; i++) one += '<span style="padding:0 22px">&#9670; ' + TICKER[i] + "</span>";
+    for (var i = 0; i < tickerItems.length; i++) one += '<span style="padding:0 22px">&#9670; ' + tickerItems[i] + "</span>";
     track.innerHTML = one + one;
     // duration is derived from the actual rendered width of one copy so the
     // loop always completes a clean pass regardless of ticker content length
@@ -630,6 +652,17 @@
     var oneCopyWidth = track.scrollWidth / 2;
     var duration = oneCopyWidth / TICKER_SPEED_PX_S;
     track.style.animationDuration = (isFinite(duration) && duration > 0 ? duration : 18) + "s";
+  }
+  // the ticker reacts to what the player just did -- a wrong guess, a decoy
+  // opened, the Goblin showing up -- so the site feels alive without adding
+  // any new reading or UI surface. Capped so it can't grow unbounded over a
+  // long, guess-heavy play.
+  function flashTicker(text) {
+    tickerItems.unshift(text);
+    if (tickerItems.length > 9) tickerItems.length = 9;
+    buildTicker();
+    var t = document.getElementById("g2-ticker-badge");
+    if (t) { t.classList.remove("g2-ticker-pop"); void t.offsetWidth; t.classList.add("g2-ticker-pop"); }
   }
 
   function wireEasterEgg() {
