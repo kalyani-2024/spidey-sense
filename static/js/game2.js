@@ -143,7 +143,7 @@
   // ---- runtime state ----------------------------------------------------
   var app, screen, urlBar, nav, dateEl;
   var hintTimer1 = null, hintTimer2 = null, stallTimer = null, urlTyper = null, won = false, goblinShown = false;
-  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home";
+  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home", clueGlimpsed = false;
   var tickerItems = TICKER.slice();
 
   function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
@@ -225,6 +225,7 @@
     clueSpot = pick(["corrections", "caption", "comment", "ad"]);
     lookupWrongs = 0;
     goblinTaunted = false;
+    clueGlimpsed = false;
 
     // 1-2 decoy case numbers, planted on OTHER sections in a context that's
     // clearly unrelated to the Spider-Man scoop on a careful read -- so
@@ -502,6 +503,28 @@
     app.classList.add("is-tingling");
     app.classList.toggle("is-tingling-strong", !!h.strong);
   }
+  // ---- tier-0 cue: a barely-there shimmer the FIRST time the true clue box
+  // scrolls into view, well before the timed hints (armHint) arm at all. It's
+  // a single soft pulse, not the persistent red/gold outline -- reward for
+  // reading carefully, not a shortcut, and it never repeats once glimpsed.
+  function wireClueGlimpse() {
+    if (clueGlimpsed || won) return;
+    var el = document.getElementById("g2-clue");
+    if (!el || !("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) {
+          clueGlimpsed = true;
+          el.classList.add("g2-clue-glimpse");
+          setTimeout(function () { el.classList.remove("g2-clue-glimpse"); }, 900);
+          io.disconnect();
+          break;
+        }
+      }
+    }, { root: screen, threshold: 0.6 });
+    io.observe(el);
+  }
+
   function clearHint() {
     if (hintTimer1) { clearTimeout(hintTimer1); hintTimer1 = null; }
     if (hintTimer2) { clearTimeout(hintTimer2); hintTimer2 = null; }
@@ -588,6 +611,7 @@
     setActiveTab(pageId);
     pulseLoadbar();
     armHint(pageId);
+    wireClueGlimpse();
     if (pageId === "archive") {
       var inp = document.getElementById("g2-lookup-input");
       if (inp) inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); doPull(); } });

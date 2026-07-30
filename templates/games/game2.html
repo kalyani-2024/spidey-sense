@@ -265,6 +265,16 @@
   .g2-comment-av { flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; background: #cdbf9c; color: #5b4f37; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.62rem; }
   .g2-comment-user { font-weight: 800; color: var(--bugle-red-dk); }
 
+  /* tier-0: a single soft pulse the first time the true clue box scrolls
+     into view -- much subtler than the full hint outline below, and never
+     repeats once triggered. Rewards a careful read without being a tell. */
+  .g2-clue-glimpse { animation: g2-glimpse 0.9s ease; border-radius: 6px; }
+  @keyframes g2-glimpse {
+    0% { box-shadow: 0 0 0 0 rgba(255,204,51,0); }
+    30% { box-shadow: 0 0 10px 3px rgba(255,204,51,0.55); }
+    100% { box-shadow: 0 0 0 0 rgba(255,204,51,0); }
+  }
+
   /* ---------- spider-sense hint ---------- */
   .g2-hint { animation: g2-tingle-pulse 0.9s ease-in-out infinite !important; outline: 3px solid var(--bugle-red); outline-offset: 2px; border-radius: 6px; }
   @keyframes g2-tingle-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(232,35,28,0); } 50% { box-shadow: 0 0 14px 4px rgba(232,35,28,0.85); } }
