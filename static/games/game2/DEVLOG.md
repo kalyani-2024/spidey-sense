@@ -74,3 +74,45 @@ Only `templates/games/game2.html` + `static/js/game2.js` were ever touched — n
 shared code (`games_config.py`, `game.js`, `game_base.html`) changed. 100%
 asset-free (CSS + inline SVG), all selectors scoped `.g2-`/`#g2-`, and winning is
 a single `completeGame('2')` call.
+
+---
+
+## v5 — Polish pass: two bugs, five game-feel additions
+
+Two visual bugs reported after a playtest:
+
+- The gold/red spider-sense hint pill (`.g2-tingle-cap`) used
+  `white-space: nowrap` with `max-width: 90%` — actual hint strings run
+  50–70 characters, so they overflowed past the pill's rounded border
+  instead of wrapping inside it. Switched to `width: max-content` +
+  `max-width: 88%` with normal wrapping.
+- The Green Goblin popup was a flat neon-green modal that clashed with the
+  sepia/red/gold newspaper theme. Restyled to the game's existing
+  "danger box" language (dark ink card, red border, gold CTA button — same
+  as the morgue-lookup box), keeping only a thin green outline as an accent.
+
+Five additions, each its own commit so any one is independently revertible:
+
+1. **SFX + mute toggle** — tiny synthesized WebAudio blips (no asset files)
+   on wrong guess, decoy open, Goblin appearance, reaching the 404, and the
+   win tap. A persisted mute toggle sits in the browser chrome since this
+   runs on shared event phones.
+2. **Live ticker reactions** — a wrong guess, a decoy file, or the Goblin
+   appearing now injects a fresh headline into the breaking-news ticker
+   and pops the BREAKING badge. Reuses the existing ticker instead of new UI.
+3. **Tier-0 clue glimpse** — an IntersectionObserver gives the true clue box
+   one soft one-shot shimmer the first time it scrolls into view, well
+   before the timed hints arm. Subtler than the hint outline, never repeats.
+4. **Hold-to-declassify redaction bars** — each `[RETRACTED]` bar in the
+   Archive now hides a flavor word; holding one ~400ms peels the cover off,
+   then it reseals after ~1.5s. Purely decorative (which word is under which
+   bar never affects the puzzle), so zero risk to the clue-hunt logic.
+5. **Corkboard win recap** — the 404 screen now shows a 3-pin corkboard
+   (clue location → case number → busted) using that play's real
+   clueSpot/case number, instead of relying only on prose for the payoff.
+
+All verified via the `/demo/game2` route: full nav pass across all 5 pages
+(no console errors), the wrong-guess/decoy/Goblin ticker-flash paths, the
+mute toggle's persistence, the redact hold/quick-tap/keyboard paths, and a
+full brute-forced win reaching the corkboard and the demo's completion
+overlay.
