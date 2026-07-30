@@ -74,6 +74,11 @@
   .g2-url .g2-caret { color: var(--gold); animation: g2-caret 1s steps(1) infinite; }
   @keyframes g2-caret { 50% { opacity: 0; } }
   .g2-refresh { margin-left: auto; color: #6a6280; flex: 0 0 auto; font-size: 1.05em; }
+  .g2-mute {
+    appearance: none; background: transparent; border: 0; flex: 0 0 auto; color: #b9b1cc;
+    font-size: 1rem; line-height: 1; padding: 4px; margin: -4px; cursor: pointer; opacity: 0.85;
+  }
+  .g2-mute.is-muted { opacity: 0.55; }
   .g2-loadbar {
     position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
     background: linear-gradient(90deg, var(--bugle-red), var(--gold)); box-shadow: 0 0 8px var(--gold); opacity: 0;
@@ -371,6 +376,7 @@
       <span class="g2-url" id="g2-url"><b>dailybugle.web</b></span>
       <span class="g2-refresh" aria-hidden="true">&#8635;</span>
     </div>
+    <button type="button" class="g2-mute" id="g2-mute" aria-label="Mute sound" aria-pressed="false">&#128266;</button>
     <div class="g2-loadbar" id="g2-loadbar" aria-hidden="true"></div>
   </div>
 

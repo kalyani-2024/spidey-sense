@@ -130,6 +130,52 @@
   function pick(arr) { return arr[ri(0, arr.length - 1)]; }
   function caseTag(str) { return '<span class="g2-case">' + (str || buriedCase) + "</span>"; }
 
+  // ---- sound: tiny synthesized WebAudio blips, no asset files -----------
+  // Muting persists per-device (a shared event phone shouldn't relearn the
+  // preference every play) and audio only ever plays from a user gesture
+  // (tap handlers), so autoplay policies never block it.
+  var audioCtx = null, muted = false;
+  try { muted = localStorage.getItem("g2-muted") === "1"; } catch (e) { /* private mode etc -- default unmuted */ }
+  function ensureAudio() {
+    if (audioCtx) return audioCtx;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try { audioCtx = new Ctx(); } catch (e) { audioCtx = null; }
+    return audioCtx;
+  }
+  function beep(freq, dur, type, delay, peak) {
+    if (muted) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    var t0 = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type || "square";
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(peak || 0.05, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.03);
+  }
+  function sfxWrong() { beep(160, 0.16, "sawtooth", 0, 0.05); beep(105, 0.22, "sawtooth", 0.08, 0.05); }
+  function sfxDecoyOpen() { beep(320, 0.09, "square", 0, 0.035); beep(230, 0.13, "square", 0.07, 0.035); }
+  function sfxGoblin() { beep(130, 0.09, "sawtooth", 0, 0.05); beep(190, 0.09, "sawtooth", 0.09, 0.05); beep(95, 0.18, "sawtooth", 0.18, 0.05); }
+  function sfxFound() { beep(392, 0.1, "triangle", 0, 0.05); beep(587.33, 0.22, "triangle", 0.09, 0.055); }
+  function sfxWin() { beep(523.25, 0.11, "square", 0, 0.05); beep(659.25, 0.11, "square", 0.1, 0.05); beep(783.99, 0.24, "square", 0.2, 0.06); }
+  function setMuteUI() {
+    var btn = document.getElementById("g2-mute");
+    if (!btn) return;
+    btn.innerHTML = muted ? "&#128263;" : "&#128266;";
+    btn.classList.toggle("is-muted", muted);
+    btn.setAttribute("aria-pressed", muted ? "true" : "false");
+  }
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem("g2-muted", muted ? "1" : "0"); } catch (e) { /* ignore */ }
+    setMuteUI();
+    if (!muted) beep(500, 0.05, "square", 0, 0.04);
+  }
+
   var NORMAL_TITLES = [
     "Rhino escapes zoo, blames &ldquo;the wall&rdquo;",
     "Aunt&#39;s bake sale raises $412 for shelter",
@@ -468,6 +514,7 @@
     if (!g || !m || won) return;
     m.innerHTML = msg;
     g.classList.add("is-open");
+    sfxGoblin();
   }
   function hideGoblin() { var g = document.getElementById("g2-goblin"); if (g) g.classList.remove("is-open"); }
 
@@ -492,9 +539,10 @@
     for (var i = 0; i < archiveRows.length; i++) {
       if (archiveRows[i].caseStr === "F-" + val) { hit = archiveRows[i]; break; }
     }
-    if (hit) { go(hit.type === "sealed" ? "sealed" : "story"); return; }
+    if (hit) { sfxDecoyOpen(); go(hit.type === "sealed" ? "sealed" : "story"); return; }
 
     lookupWrongs++;
+    sfxWrong();
     var box = document.getElementById("g2-lookup");
     if (box) { box.classList.remove("g2-shake"); void box.offsetWidth; box.classList.add("g2-shake"); }
     if (msg) msg.textContent = val ? "No file matches #F-" + val + " in the morgue." : "Enter the 4-digit case number.";
@@ -509,6 +557,7 @@
     if (!page || won) return;
     currentPageId = pageId;
     clearHint();
+    if (pageId === "notfound") sfxFound();
     app.classList.toggle("is-404", pageId === "notfound");
     screen.innerHTML = page.html();
     screen.scrollTop = 0;
@@ -527,6 +576,7 @@
   function win() {
     if (won) return;
     won = true;
+    sfxWin();
     clearHint();
     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
     var btn = document.getElementById("g2-win");
@@ -617,6 +667,8 @@
     if (goblin) goblin.addEventListener("click", function (e) {
       if (e.target === goblin || e.target.id === "g2-goblin-x") hideGoblin();
     });
+    var muteBtn = document.getElementById("g2-mute");
+    if (muteBtn) { setMuteUI(); muteBtn.addEventListener("click", toggleMute); }
 
     go("home");
   });
