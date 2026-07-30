@@ -377,6 +377,19 @@
   .g2-404-title { font-family: 'Bangers', sans-serif; letter-spacing: 1px; font-size: clamp(1.1rem, 5vw, 1.5rem); color: var(--gold); margin: 2px 0 7px; }
   .g2-404-copy { font-family: 'Barlow', sans-serif; font-size: 0.86rem; line-height: 1.42; max-width: 30ch; color: #ddd6ea; margin: 0 auto 5px; }
   .g2-404-sign { font-family: 'Barlow', sans-serif; font-style: italic; font-size: 0.76rem; color: #9c95b2; margin: 0 0 14px; }
+
+  /* win-screen recap: a 3-pin corkboard connected by a dashed red string,
+     a quick "how you cracked it" visual instead of more paragraphs. */
+  .g2-corkboard { position: relative; display: flex; justify-content: space-between; align-items: flex-start; max-width: 300px; margin: 4px auto 14px; }
+  .g2-corkboard::before { content: ""; position: absolute; left: 10%; right: 10%; top: 26px; border-top: 2px dashed rgba(232,35,28,0.65); z-index: 0; }
+  .g2-cork-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1 1 0; min-width: 0; }
+  .g2-cork-pin { font-size: 0.85rem; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
+  .g2-cork-ico {
+    background: #14100c; border: 1px solid rgba(255,204,51,0.5); border-radius: 6px; padding: 5px 8px;
+    font-family: 'Barlow', sans-serif; font-size: 0.95rem; color: #fff; line-height: 1; white-space: nowrap;
+  }
+  .g2-cork-ico.g2-cork-case { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.5px; color: var(--gold); }
+  .g2-cork-lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 0.52rem; letter-spacing: 1px; text-transform: uppercase; color: #9c95b2; text-align: center; }
   .g2-win {
     appearance: none; font-family: 'Bangers', sans-serif; letter-spacing: 2px; font-size: clamp(1.05rem, 4.6vw, 1.45rem);
     color: #fff; background: linear-gradient(180deg, var(--bugle-red), var(--bugle-red-dk)); border: 3px solid #000;

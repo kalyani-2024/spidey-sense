@@ -461,6 +461,7 @@
             '<div class="g2-404-title">Page Not Found</div>' +
             '<p class="g2-404-copy">&hellip;but you found <b>me.</b> This is the scoop Jonah tried ' +
               'to bury &mdash; and I hear the Goblin&#39;s hopping mad you dug up the number. Nice work, kid.</p>' +
+            corkboard() +
             '<p class="g2-404-sign">&mdash; your friendly neighborhood Spider-Man</p>' +
             '<button type="button" class="g2-win" id="g2-win">Case Closed &#10003;</button>' +
           '</div>'
@@ -468,6 +469,26 @@
       }
     }
   };
+
+  // ---- win-screen recap: a 3-pin corkboard instead of more prose, so the
+  // "how you cracked it" payoff is a quick visual, not extra reading.
+  var CLUE_ICON = { corrections: "&#128240;", caption: "&#128248;", comment: "&#128172;", ad: "&#128227;" };
+  var CLUE_LABEL = { corrections: "Corrections", caption: "Front Page", comment: "City Comments", ad: "Classifieds" };
+  function corkboard() {
+    return (
+      '<div class="g2-corkboard">' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico" aria-hidden="true">' + CLUE_ICON[clueSpot] + '</span>' +
+          '<span class="g2-cork-lbl">' + CLUE_LABEL[clueSpot] + '</span></div>' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico g2-cork-case">' + buriedCase + '</span>' +
+          '<span class="g2-cork-lbl">Case File</span></div>' +
+        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+          '<span class="g2-cork-ico" aria-hidden="true">&#128375;&#65039;</span>' +
+          '<span class="g2-cork-lbl">Busted</span></div>' +
+      '</div>'
+    );
+  }
 
   var ACTIVE_FOR = { story: "archive", sealed: "archive" };
 
