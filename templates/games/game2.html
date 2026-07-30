@@ -237,7 +237,25 @@
   .g2-view:active { transform: translateY(1px); }
 
   .g2-retracted .g2-row-title { font-family: 'Courier New', monospace; color: #55493a; }
-  .g2-redact { display: inline-block; background: #241f16; color: transparent; border-radius: 1px; height: 0.82em; vertical-align: -1px; margin: 0 1px; user-select: none; }
+  /* redaction bars double as a small tactile toy: hold one down to "declassify"
+     it (peels the black cover off the word beneath), release/wait and it
+     reseals. Purely flavor -- which word hides under which bar never affects
+     the puzzle. */
+  .g2-redact {
+    position: relative; display: inline-block; border-radius: 1px; vertical-align: -1px;
+    margin: 0 2px; padding: 0 3px; cursor: pointer; user-select: none; -webkit-user-select: none;
+  }
+  .g2-redact-word {
+    display: inline-block; font-family: 'Courier New', monospace; font-weight: 700;
+    font-size: 0.86em; letter-spacing: 0.4px; color: #241f16; white-space: nowrap;
+  }
+  .g2-redact-cover {
+    position: absolute; inset: 0; background: #241f16; border-radius: 1px;
+    transform-origin: left center; transform: scaleX(1); transition: transform 0.3s ease;
+  }
+  .g2-redact.is-holding .g2-redact-cover { transform: scaleX(0.08); transition-duration: 0.42s; transition-timing-function: linear; }
+  .g2-redact.is-peeled .g2-redact-cover { transform: scaleX(0); transition-duration: 0.2s; }
+  .g2-redact:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
   .g2-view.g2-view-sealed { color: #f4efe2; background: #55493a; border-color: var(--ink); }
 
   .g2-note { font-family: 'Barlow', sans-serif; font-size: 0.78rem; font-style: italic; color: #6b5f45; margin-top: 12px; line-height: 1.4; }

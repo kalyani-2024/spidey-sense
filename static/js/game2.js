@@ -209,9 +209,23 @@
     "Op-ed: Vigilantes are ruining this city"
   ];
 
+  // words hidden under each black bar -- purely decorative flavor (which
+  // word is under which bar never affects the puzzle: every sealed row is a
+  // dead end regardless), but holding a bar down to "declassify" it makes
+  // the archive list a small tactile toy instead of a flat wall of black
+  // rectangles.
+  var REDACT_WORDS = [
+    "MENACE", "WALL-CRAWLER", "WEB-FLUID", "OSCORP", "THE MASK", "VIGILANTE",
+    "THE SUIT", "GOBLIN", "THE PHOTO", "COSTUME", "THE WEBS", "TRACKER"
+  ];
   function redactBars() {
     var n = ri(3, 4), out = "[RETRACTED] ";
-    for (var i = 0; i < n; i++) out += '<span class="g2-redact" style="width:' + ri(22, 48) + 'px"></span>';
+    for (var i = 0; i < n; i++) {
+      var w = pick(REDACT_WORDS);
+      out += '<span class="g2-redact" data-word="' + w + '" tabindex="0" role="button" ' +
+        'aria-label="Hold to declassify"><span class="g2-redact-word">' + w +
+        '</span><span class="g2-redact-cover"></span></span>';
+    }
     return out;
   }
 
@@ -654,6 +668,41 @@
     go(dest);
   }
 
+  // ---- redaction bars: hold to declassify --------------------------------
+  var REDACT_HOLD_MS = 420, REDACT_RESEAL_MS = 1500;
+  var redactHoldTimer = null, redactHoldEl = null;
+  function redactCancel() {
+    if (redactHoldTimer) { clearTimeout(redactHoldTimer); redactHoldTimer = null; }
+    if (redactHoldEl) { redactHoldEl.classList.remove("is-holding"); redactHoldEl = null; }
+  }
+  function redactPeel(el) {
+    if (redactHoldTimer) { clearTimeout(redactHoldTimer); redactHoldTimer = null; }
+    redactHoldEl = null;
+    el.classList.remove("is-holding");
+    el.classList.add("is-peeled");
+    setTimeout(function () { el.classList.remove("is-peeled"); }, REDACT_RESEAL_MS);
+  }
+  function wireRedactHold() {
+    app.addEventListener("pointerdown", function (e) {
+      var el = e.target.closest(".g2-redact");
+      if (!el || el.classList.contains("is-peeled")) return;
+      redactCancel();
+      redactHoldEl = el;
+      el.classList.add("is-holding");
+      redactHoldTimer = setTimeout(function () { redactPeel(el); }, REDACT_HOLD_MS);
+    });
+    ["pointerup", "pointercancel"].forEach(function (evtName) {
+      app.addEventListener(evtName, function () { redactCancel(); });
+    });
+    app.addEventListener("keydown", function (e) {
+      var el = e.target;
+      if ((e.key === "Enter" || e.key === " ") && el.classList && el.classList.contains("g2-redact") && !el.classList.contains("is-peeled")) {
+        e.preventDefault();
+        redactPeel(el);
+      }
+    });
+  }
+
   function setDate() {
     if (!dateEl) return;
     try {
@@ -720,6 +769,7 @@
     wireEasterEgg();
 
     app.addEventListener("click", onTap);
+    wireRedactHold();
     var goblin = document.getElementById("g2-goblin");
     if (goblin) goblin.addEventListener("click", function (e) {
       if (e.target === goblin || e.target.id === "g2-goblin-x") hideGoblin();
