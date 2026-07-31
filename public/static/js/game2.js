@@ -11,18 +11,27 @@
  * WHY IT CAN'T BE BRUTE-FORCED: the buried file is genuinely UNLISTED -- there
  * is no link to it anywhere. A real 404 is a page nothing points at, so the only
  * way in is to know its exact CASE NUMBER (F-#### -- 10,000 possibilities) and
- * type it into the Archive's "morgue lookup". That number is hidden in prose, in
- * a spot that ROTATES each play (Opinion Corrections, the Home photo caption, a
- * City reader comment, or a News classified ad); Home only riddles at where --
- * it never names the section -- and 1-2 decoy case numbers are planted on OTHER
- * pages in an unrelated context, so spotting *a* number proves nothing. Every
- * Archive row also has its own real (if wrong) case number, openable from the
- * lookup, so guessing wastes a look, not a dead end. So you must actually READ
- * and reason to find the number -- spamming the list gets you nowhere.
+ * type it into the Archive's "morgue lookup".
+ *
+ * v6: the case number is torn in HALF. The first two digits and the last two
+ * digits are hidden by two INDEPENDENT carriers, chosen fresh every play from a
+ * pool of five: three text clues (Opinion Corrections / a City reader comment /
+ * a News classified ad) and two interactive ones (hold the front-page photo
+ * down to "develop" it; hold down [RETRACTED] archive bars until one gives).
+ * Exactly one text carrier + one interactive carrier are picked each round, and
+ * which one gets the prefix vs. the suffix is random too -- so it's never pure
+ * reading and never pure fumbling, and never the same hiding spot twice running.
+ * A case-tag strip (hidden until the first half surfaces) fills in as each half
+ * is found (F-2?-- then F-2705), and the win screen recaps both sources.
+ * Decoys: the two unused text carriers always carry an unrelated 2-digit "ref"
+ * number in unrelated prose, and the unused interactive carrier always reacts
+ * to a hold too (a joke instead of a real fragment) -- so trying any of them is
+ * never itself a tell for which ones are real this round.
  *
  * The Green Goblin heckles you; a ticker, ads and comments make the site feel
- * alive; a two-tier spider-sense hint (vague, then explicit) plus an absolute
- * stall-safety timer make sure nobody truly gets stuck. Asset-free, scoped g2-.
+ * alive; a two-tier spider-sense hint (vague, then explicit) per missing half,
+ * plus an absolute stall-safety timer, make sure nobody truly gets stuck.
+ * Asset-free (CSS + inline SVG), scoped g2-.
  */
 (function () {
   "use strict";
@@ -101,49 +110,79 @@
     "WITNESSES REPORT CACKLING HEARD OVER MIDTOWN, AGAIN",
     "OSCORP DECLINES TO COMMENT ON GOBLIN SIGHTING"
   ];
+  var TICKER_FRAGMENT_FLASHES = [
+    "PIECE OF FILE SURFACES AT THE MORGUE, SOURCES SAY",
+    "HALF THE STORY RESURFACES, JONAH DEMANDS THE REST",
+    "MORGUE CLERK CONFIRMS: &lsquo;SOMETHING&#39;S COME LOOSE&rsquo;"
+  ];
+  var TICKER_MATCH_FLASHES = [
+    "BOTH HALVES OF THE FILE FINALLY MATCH UP",
+    "MYSTERY SLEUTH ASSEMBLES THE FULL CASE NUMBER",
+    "THE PIECES FIT &mdash; MORGUE LOOKUP INCOMING"
+  ];
 
-  // where the case number hides this play; how Home points (a riddle, not a
-  // named tab -- the player has to connect it to a section themselves); the
-  // two-tier hint text (nudge = vague stage-1, msg = explicit stage-2)
-  var CLUES = {
+  // ---- the five possible carriers for a fragment (one text pool member +
+  // one interactive pool member are chosen each puzzle -- see buildPuzzle()).
+  // `ptr` is the riddle Home uses (never names the section); `nudge`/`msg` are
+  // the two-tier off-page hints; `foundSel` is what gets outlined once the
+  // player is on the right page; `where`/`target` back the Archive-page hint.
+  var CARRIER_INFO = {
     corrections: {
       section: "opinion",
-      ptr: "somewhere in the fine print where this paper&#39;s forced to eat its own words &mdash; right next to my own two cents on everything",
       target: '#g2-nav [data-goto="opinion"]',
+      foundSel: "#g2-clue",
+      ptr: "somewhere in the fine print where this paper&#39;s forced to eat its own words &mdash; right next to my own two cents on everything",
       nudge: "Something about where Jonah&#39;s made to admit fault is nagging at you&hellip; worth a second look.",
       msg: "Jonah slipped it into the Corrections &mdash; read the Opinion page&hellip;",
       where: "in the Opinion Corrections"
     },
-    caption: {
-      section: "home",
-      ptr: "closer than you&#39;d think &mdash; practically under my own nose, right here on this very page",
-      target: '#g2-nav [data-goto="home"]',
-      nudge: "Your spider-sense says the answer&#39;s hiding in plain sight, closer than you&#39;d guess&hellip;",
-      msg: "It&#39;s in the photo caption, right on the front page&hellip;",
-      where: "under the front-page photo"
-    },
     comment: {
       section: "city",
-      ptr: "let slip by one of these mouthy New Yorkers grumbling about their own block &mdash; same place I let the public grumble right back at me",
       target: '#g2-nav [data-goto="city"]',
+      foundSel: "#g2-clue",
+      ptr: "let slip by one of these mouthy New Yorkers grumbling about their own block &mdash; same place I let the public grumble right back at me",
       nudge: "Somebody&#39;s been running their mouth about this somewhere&hellip; keep your ears open.",
       msg: "A reader quoted it &mdash; read the City comments&hellip;",
       where: "in a City reader comment"
     },
     ad: {
       section: "news",
-      ptr: "printed in a classified some fool paid good money for, tucked between the day&#39;s dispatches from every borough",
       target: '#g2-nav [data-goto="news"]',
+      foundSel: "#g2-clue",
+      ptr: "printed in a classified some fool paid good money for, tucked between the day&#39;s dispatches from every borough",
       nudge: "Somebody paid to advertise this, buried in the everyday print&hellip;",
       msg: "Somebody ran an ad about it &mdash; check the News classifieds&hellip;",
       where: "in a News classified ad"
+    },
+    photo: {
+      section: "home",
+      target: '#g2-nav [data-goto="home"]',
+      foundSel: "#g2-photo",
+      ptr: "closer than you&#39;d think &mdash; practically under my own nose. Try holding down on that ruined front-page photo and give it a second to develop",
+      nudge: "That ruined front-page photo of mine&hellip; try holding it down like you&#39;re coaxing an old Polaroid.",
+      msg: "Press and hold the front-page photo &mdash; give it a moment to develop&hellip;",
+      where: "under the front-page photo (press and hold it)"
+    },
+    redact: {
+      section: "archive",
+      target: '#g2-nav [data-goto="archive"]',
+      foundSel: "#g2-lookup",
+      ptr: "sitting in plain sight in the Archive, hiding under one of those blacked-out bars &mdash; you&#39;ll have to lean on the right one",
+      nudge: "One of those retracted bars in the Archive isn&#39;t just for show&hellip; try holding a few down.",
+      msg: "One specific [RETRACTED] bar in the Archive is hiding it &mdash; hold bars down until one gives.",
+      where: "under one of the [RETRACTED] bars in the Archive (press and hold it)"
     }
   };
+  var CARRIER_ICON = { corrections: "&#128240;", comment: "&#128172;", ad: "&#128227;", photo: "&#128248;", redact: "&#128193;" };
+  var CARRIER_LABEL = { corrections: "Corrections", comment: "City Comments", ad: "Classifieds", photo: "Developed Photo", redact: "Redacted Bar" };
 
   // ---- runtime state ----------------------------------------------------
   var app, screen, urlBar, nav, dateEl;
   var hintTimer1 = null, hintTimer2 = null, stallTimer = null, urlTyper = null, won = false, goblinShown = false;
-  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {}, clueSpot = "corrections", lookupWrongs = 0, goblinTaunted = false, currentPageId = "home", clueGlimpsed = false;
+  var buriedCase = "", buriedNum = 0, buriedSlug = "", archiveRows = [], decoyNums = {},
+    lookupWrongs = 0, goblinTaunted = false, currentPageId = "home";
+  var prefixStr = "", suffixStr = "", proseCarrier = "corrections", trickCarrier = "photo",
+    prefixCarrier = "corrections", suffixCarrier = "photo", fragPrefixFound = false, fragSuffixFound = false;
   var tickerItems = TICKER.slice();
 
   function ri(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
@@ -182,6 +221,8 @@
   function sfxGoblin() { beep(130, 0.09, "sawtooth", 0, 0.05); beep(190, 0.09, "sawtooth", 0.09, 0.05); beep(95, 0.18, "sawtooth", 0.18, 0.05); }
   function sfxFound() { beep(392, 0.1, "triangle", 0, 0.05); beep(587.33, 0.22, "triangle", 0.09, 0.055); }
   function sfxWin() { beep(523.25, 0.11, "square", 0, 0.05); beep(659.25, 0.11, "square", 0.1, 0.05); beep(783.99, 0.24, "square", 0.2, 0.06); }
+  function sfxFragment() { beep(440, 0.09, "triangle", 0, 0.045); beep(659.25, 0.14, "triangle", 0.07, 0.05); }
+  function sfxMatch() { beep(659.25, 0.09, "square", 0, 0.05); beep(880, 0.09, "square", 0.08, 0.05); beep(1046.5, 0.18, "square", 0.16, 0.055); }
   function setMuteUI() {
     var btn = document.getElementById("g2-mute");
     if (!btn) return;
@@ -209,25 +250,35 @@
     "Op-ed: Vigilantes are ruining this city"
   ];
 
-  // words hidden under each black bar -- purely decorative flavor (which
-  // word is under which bar never affects the puzzle: every sealed row is a
-  // dead end regardless), but holding a bar down to "declassify" it makes
-  // the archive list a small tactile toy instead of a flat wall of black
-  // rectangles.
+  // words hidden under most black bars -- purely decorative (holding one down
+  // just "declassifies" a joke word). When this round's interactive carrier is
+  // "redact", exactly one bar in one row secretly hides a real digit-pair
+  // fragment instead -- same styling, same interaction, no visual tell.
   var REDACT_WORDS = [
     "MENACE", "WALL-CRAWLER", "WEB-FLUID", "OSCORP", "THE MASK", "VIGILANTE",
-    "THE SUIT", "GOBLIN", "THE PHOTO", "COSTUME", "THE WEBS", "TRACKER"
+    "THE SUIT", "GOBLIN", "THE PHOTO", "COSTUME", "THE WEBS", "TRACKER", "MJ", "GG"
   ];
-  function redactBars() {
+  function redactBars(fragValue) {
     var n = ri(3, 4), out = "[RETRACTED] ";
+    var fragIdx = fragValue ? ri(0, n - 1) : -1;
     for (var i = 0; i < n; i++) {
-      var w = pick(REDACT_WORDS);
-      out += '<span class="g2-redact" data-word="' + w + '" tabindex="0" role="button" ' +
-        'aria-label="Hold to declassify"><span class="g2-redact-word">' + w +
-        '</span><span class="g2-redact-cover"></span></span>';
+      if (i === fragIdx) {
+        out += '<span class="g2-redact" data-frag="1" tabindex="0" role="button" aria-label="Hold to declassify">' +
+          '<span class="g2-redact-word">' + fragValue + '</span><span class="g2-redact-cover"></span></span>';
+      } else {
+        out += '<span class="g2-redact" tabindex="0" role="button" aria-label="Hold to declassify">' +
+          '<span class="g2-redact-word">' + pick(REDACT_WORDS) + '</span><span class="g2-redact-cover"></span></span>';
+      }
     }
     return out;
   }
+
+  var PHOTO_JOKES = [
+    "Just Aunt May&#39;s meatloaf recipe, splattered across the negative.",
+    "A blurry pigeon. Definitely not evidence of anything.",
+    "Static. Somebody left the darkroom light on again.",
+    "A parking ticket. Jonah&#39;s, apparently."
+  ];
 
   function buildPuzzle() {
     var used = {};
@@ -236,19 +287,30 @@
     buriedNum = uniqNum();
     buriedCase = "F-" + buriedNum;
     buriedSlug = "retracted-file-" + buriedNum;
-    clueSpot = pick(["corrections", "caption", "comment", "ad"]);
+    var numStr = String(buriedNum);
+    prefixStr = numStr.slice(0, 2);
+    suffixStr = numStr.slice(2, 4);
+
+    // one text carrier + one interactive carrier, and a coin flip for which
+    // half each one gets -- five carriers, two pools, never the same shape
+    // of hunt twice running.
+    proseCarrier = pick(["corrections", "comment", "ad"]);
+    trickCarrier = pick(["photo", "redact"]);
+    if (ri(0, 1) === 0) { prefixCarrier = proseCarrier; suffixCarrier = trickCarrier; }
+    else { prefixCarrier = trickCarrier; suffixCarrier = proseCarrier; }
+
     lookupWrongs = 0;
     goblinTaunted = false;
-    clueGlimpsed = false;
+    fragPrefixFound = false;
+    fragSuffixFound = false;
+    updateCaseTag();
 
-    // 1-2 decoy case numbers, planted on OTHER sections in a context that's
-    // clearly unrelated to the Spider-Man scoop on a careful read -- so
-    // spotting *a* case number isn't proof it's the one Home pointed to.
-    var others = ["corrections", "caption", "comment", "ad"].filter(function (k) { return k !== clueSpot; });
-    for (var o = others.length - 1; o > 0; o--) { var oj = ri(0, o); var ot = others[o]; others[o] = others[oj]; others[oj] = ot; }
+    // the two text carriers NOT chosen this round always carry an unrelated
+    // 2-digit "ref" number in an unrelated context -- same visual weight as a
+    // real fragment, so spotting a short number is never proof by itself.
     decoyNums = {};
-    var decoyCount = ri(1, 2);
-    for (var d = 0; d < decoyCount; d++) decoyNums[others[d]] = uniqNum();
+    var otherProse = ["corrections", "comment", "ad"].filter(function (k) { return k !== proseCarrier; });
+    for (var d = 0; d < otherProse.length; d++) decoyNums[otherProse[d]] = ri(10, 99);
 
     // The buried file is UNLISTED, and every visible row has its own real
     // case number -- but none of them is the buried file, so scanning,
@@ -257,7 +319,12 @@
     var titles = NORMAL_TITLES.slice();
     for (var s = titles.length - 1; s > 0; s--) { var j = ri(0, s); var t = titles[s]; titles[s] = titles[j]; titles[j] = t; }
     for (var i = 0; i < 9; i++) rows.push({ type: "normal", title: titles[i], caseStr: "F-" + uniqNum() });
-    for (var r = 0; r < 4; r++) rows.push({ type: "sealed", title: redactBars(), caseStr: "F-" + uniqNum() });
+
+    var sealedFragValue = trickCarrier === "redact" ? ((prefixCarrier === "redact") ? prefixStr : suffixStr) : null;
+    var fragRowIdx = sealedFragValue ? ri(0, 3) : -1;
+    for (var r = 0; r < 4; r++) {
+      rows.push({ type: "sealed", title: redactBars(r === fragRowIdx ? sealedFragValue : null), caseStr: "F-" + uniqNum() });
+    }
     for (var k = rows.length - 1; k > 0; k--) { var m = ri(0, k); var tmp = rows[k]; rows[k] = rows[m]; rows[m] = tmp; }
     archiveRows = rows;
 
@@ -280,35 +347,36 @@
       '<div class="g2-comment-av">' + c.user.charAt(0).toUpperCase() + '</div>' +
       '<div><span class="g2-comment-user">@' + c.user + '</span> ' + c.text + '</div></div>';
   }
+  function halfLabel(role) { return role === "prefix" ? "first two digits" : "last two digits"; }
 
   // ---- pages ------------------------------------------------------------
   var PAGES = {
     home: {
       url: "dailybugle.web",
       html: function () {
-        var capClue = clueSpot === "caption";
+        var prefixInfo = CARRIER_INFO[prefixCarrier], suffixInfo = CARRIER_INFO[suffixCarrier];
         return (
           '<div class="g2-mission"><span aria-hidden="true">&#128373;&#65039;</span>' +
             '<div><b>FROM THE EDITOR&#39;S DESK:</b> Some saboteur pulled my Spider-Man exclusive to ' +
-            'the <b>morgue</b> and scrubbed every link to it &mdash; you can only pull it by its ' +
-            '<b>case number</b>. I saw that number ' + CLUES[clueSpot].ptr + '. Find it, then punch it ' +
-            'into the <b>Archive</b>&#39;s file lookup.</div></div>' +
+            'the <b>morgue</b> and tore the case number clean in half before scrubbing every link. ' +
+            'The <b>first two digits</b> are ' + prefixInfo.ptr + '. The <b>last two digits</b> are ' + suffixInfo.ptr + '. ' +
+            'Find both halves, then punch the whole number into the <b>Archive</b>&#39;s file lookup.</div></div>' +
           '<div class="g2-kicker">Exclusive &bull; Front Page</div>' +
           '<h1 class="g2-headline">Spider-Man: Threat or Menace?</h1>' +
           '<div class="g2-byline">By J. Jonah Jameson, Editor-in-Chief</div>' +
-          '<div class="g2-photo">[ Exclusive Photo &mdash; Pulled for Review ]</div>' +
-          '<div class="g2-caption"' + (capClue ? ' id="g2-clue"' : '') + '>' +
-            (capClue ? "Photo pulled to morgue, cat. no. " + caseTag() + " &mdash; pending retraction"
-                     : "Photo removed pending retraction &mdash; filed to the morgue") + '</div>' +
+          '<div class="g2-photo" id="g2-photo" tabindex="0" role="button" aria-label="Hold to develop the photo">' +
+            '<span class="g2-photo-reveal" id="g2-photo-reveal"></span>' +
+            '<span class="g2-photo-cover"></span>' +
+            '<span class="g2-photo-label">[ Exclusive Photo &mdash; Pulled for Review ]<small>(press and hold)</small></span>' +
+          '</div>' +
+          '<div class="g2-caption">Photo removed pending retraction &mdash; filed to the morgue</div>' +
           '<div class="g2-body"><p>I had that masked menace dead to rights. Now the file is buried ' +
             'in our own archive, unlisted, and nobody will hand me the number. Unbelievable.</p></div>' +
           adBox(ADS[0], false) +
           '<div class="g2-section-label">More From Today</div>' +
           teaser("City Council debates web-fluid cleanup costs", "story") +
           teaser("Oscorp stock soars on &ldquo;synergy&rdquo; buzz", "story") +
-          (decoyNums.caption
-            ? teaser("Metro parking dispute drags into month three, case " + caseTag("F-" + decoyNums.caption) + " still under review", "story")
-            : teaser("Best pretzel cart in Queens? We ranked them", "story"))
+          teaser("Best pretzel cart in Queens? We ranked them", "story")
         );
       }
     },
@@ -316,7 +384,8 @@
     news: {
       url: "dailybugle.web/news",
       html: function () {
-        var adClue = clueSpot === "ad";
+        var adClue = proseCarrier === "ad";
+        var role = adClue ? ((prefixCarrier === "ad") ? "prefix" : "suffix") : null;
         return (
           '<div class="g2-kicker">City News</div>' +
           '<h1 class="g2-headline">Around the Boroughs</h1>' +
@@ -324,12 +393,12 @@
           teaser("Subway delays blamed on &ldquo;giant lizard&rdquo;", "story") +
           teaser("Web-fluid cleanup bill hits City Hall", "story") +
           teaser("Oscorp opens third Manhattan lab", "story") +
-          (adClue ? adBox({ label: "Classified", head: "LOST: ONE PRESS FILE",
-              body: "Retracted photo file, catalogue no. " + caseTag() + ". If found, do NOT return it to J. Jameson." }, true)
-                  : decoyNums.ad
-                    ? adBox({ label: "Classified", head: "LOST DOG: MAX",
-                        body: "Answers to &ldquo;Max.&rdquo; Reward if found. Ref. case " + caseTag("F-" + decoyNums.ad) + " with the pound." }, false)
-                    : adBox(ADS[2], false)) +
+          (adClue
+            ? adBox({ label: "Classified", head: "LOST: ONE PRESS FILE",
+                body: "Retracted photo file &mdash; the " + halfLabel(role) + " of the catalogue number read " +
+                  caseTag(role === "prefix" ? prefixStr : suffixStr) + ". If found, do NOT return it to J. Jameson." }, true)
+            : adBox({ label: "Classified", head: "LOST DOG: MAX",
+                body: "Answers to &ldquo;Max.&rdquo; Reward if found. Ref. " + caseTag(decoyNums.ad) + " with the pound." }, false)) +
           '<div class="g2-note">Editor&#39;s note: retracted files are unlisted &mdash; open them from the ' +
             'Archive by their case number.</div>'
         );
@@ -339,7 +408,8 @@
     city: {
       url: "dailybugle.web/city",
       html: function () {
-        var comClue = clueSpot === "comment";
+        var comClue = proseCarrier === "comment";
+        var role = comClue ? ((prefixCarrier === "comment") ? "prefix" : "suffix") : null;
         var out =
           '<div class="g2-kicker">City Life</div>' +
           '<h1 class="g2-headline">The Big Apple, Daily</h1>' +
@@ -349,10 +419,10 @@
           '<div class="g2-section-label">Letters &amp; Comments</div><div class="g2-comments">';
         out += commentRow(COMMENTS[0], false);
         out += commentRow(comClue
-          ? { user: "morgue_intern", text: "lol they filed the spidey photo as cat. no. " + caseTag() + " and just left it unlisted in the archive" }
-          : decoyNums.comment
-            ? { user: "landlord_hater", text: "my noise complaint against 4B&#39;s been open since March, case " + caseTag("F-" + decoyNums.comment) + ", nobody at 311 cares" }
-            : COMMENTS[1], comClue);
+          ? { user: "morgue_intern", text: "lol the " + halfLabel(role) + " of the spidey file&#39;s catalogue number is " +
+              caseTag(role === "prefix" ? prefixStr : suffixStr) + " &mdash; still unlisted in the archive though" }
+          : { user: "landlord_hater", text: "my noise complaint against 4B&#39;s been open since March, ref. " +
+              caseTag(decoyNums.comment) + ", nobody at 311 cares" }, comClue);
         out += commentRow(COMMENTS[2], false);
         out += "</div>";
         return out;
@@ -362,7 +432,8 @@
     opinion: {
       url: "dailybugle.web/opinion",
       html: function () {
-        var corrClue = clueSpot === "corrections";
+        var corrClue = proseCarrier === "corrections";
+        var role = corrClue ? ((prefixCarrier === "corrections") ? "prefix" : "suffix") : null;
         return (
           '<div class="g2-kicker">Opinion &amp; Editorial</div>' +
           '<h1 class="g2-headline">Why I&#39;m Always Right</h1>' +
@@ -373,15 +444,12 @@
           '<div class="g2-section-label">Corrections &amp; Retractions</div>' +
           (corrClue
             ? '<div class="g2-corrections" id="g2-clue"><span class="g2-corr-label">&#9888; Pending Retraction Review</span>' +
-                'The Bugle has pulled and unlisted one report pending review &mdash; catalogued ' + caseTag() +
-                ', subject: the wall-crawler &mdash; and its headline is struck from the public record.</div>'
-            : decoyNums.corrections
-              ? '<div class="g2-corrections"><span class="g2-corr-label">Correction</span>' +
-                  'We misidentified the winner of Tuesday&#39;s county-fair hot-dog-eating contest &mdash; the file&#39;s ' +
-                  'been reopened for review, catalogue ' + caseTag("F-" + decoyNums.corrections) + '. The Bugle regrets the error.</div>'
-              : '<div class="g2-corrections"><span class="g2-corr-label">Correction</span>' +
-                  'Tuesday&#39;s edition misspelled the Mayor&#39;s name. It also misspelled &ldquo;menace.&rdquo; ' +
-                  'We regret nothing.</div>') +
+                'The Bugle has pulled and unlisted one report pending review &mdash; the ' + halfLabel(role) +
+                ' of its catalogue number read ' + caseTag(role === "prefix" ? prefixStr : suffixStr) +
+                ', subject: the wall-crawler.</div>'
+            : '<div class="g2-corrections"><span class="g2-corr-label">Correction</span>' +
+                'We misidentified the winner of Tuesday&#39;s county-fair hot-dog-eating contest &mdash; the file&#39;s ' +
+                'been reopened for review, ref. ' + caseTag(decoyNums.corrections) + '. The Bugle regrets the error.</div>') +
           '<div class="g2-note">Retracted files are unlisted &mdash; open them from the <b>Archive</b> by ' +
             'their case number.</div>'
         );
@@ -470,38 +538,82 @@
     }
   };
 
-  // ---- win-screen recap: a 3-pin corkboard instead of more prose, so the
-  // "how you cracked it" payoff is a quick visual, not extra reading.
-  var CLUE_ICON = { corrections: "&#128240;", caption: "&#128248;", comment: "&#128172;", ad: "&#128227;" };
-  var CLUE_LABEL = { corrections: "Corrections", caption: "Front Page", comment: "City Comments", ad: "Classifieds" };
+  // ---- win-screen recap: a corkboard showing where BOTH halves came from,
+  // feeding into the matched case number -- a quick visual instead of prose.
   function corkboard() {
     return (
       '<div class="g2-corkboard">' +
-        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
-          '<span class="g2-cork-ico" aria-hidden="true">' + CLUE_ICON[clueSpot] + '</span>' +
-          '<span class="g2-cork-lbl">' + CLUE_LABEL[clueSpot] + '</span></div>' +
+        '<div class="g2-cork-row">' +
+          '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+            '<span class="g2-cork-ico">' + CARRIER_ICON[prefixCarrier] + ' ' + prefixStr + '</span>' +
+            '<span class="g2-cork-lbl">' + CARRIER_LABEL[prefixCarrier] + '</span></div>' +
+          '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
+            '<span class="g2-cork-ico">' + CARRIER_ICON[suffixCarrier] + ' ' + suffixStr + '</span>' +
+            '<span class="g2-cork-lbl">' + CARRIER_LABEL[suffixCarrier] + '</span></div>' +
+        '</div>' +
         '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
           '<span class="g2-cork-ico g2-cork-case">' + buriedCase + '</span>' +
-          '<span class="g2-cork-lbl">Case File</span></div>' +
-        '<div class="g2-cork-item"><span class="g2-cork-pin" aria-hidden="true">&#128204;</span>' +
-          '<span class="g2-cork-ico" aria-hidden="true">&#128375;&#65039;</span>' +
-          '<span class="g2-cork-lbl">Busted</span></div>' +
+          '<span class="g2-cork-lbl">Matched</span></div>' +
       '</div>'
     );
   }
 
   var ACTIVE_FOR = { story: "archive", sealed: "archive" };
 
-  // ---- hint scheduling (adapts to where the clue hides) -----------------
+  // ---- fragment discovery: the shared "you found a half" hook, no matter
+  // which of the 5 carriers it came from (text glimpse or a hold-reveal). ----
+  function nextMissingCarrier() {
+    if (!fragPrefixFound) return { role: "prefix", key: prefixCarrier };
+    if (!fragSuffixFound) return { role: "suffix", key: suffixCarrier };
+    return null;
+  }
+  function updateCaseTag() {
+    var tag = document.getElementById("g2-casetag"), txt = document.getElementById("g2-casetag-txt");
+    if (!tag || !txt) return;
+    if (!fragPrefixFound && !fragSuffixFound) { tag.hidden = true; return; }
+    txt.textContent = "F-" + (fragPrefixFound ? prefixStr : "--") + (fragSuffixFound ? suffixStr : "--");
+    tag.hidden = false;
+    tag.classList.toggle("g2-casetag-complete", fragPrefixFound && fragSuffixFound);
+  }
+  function onFragmentFound(role) {
+    if (won) return;
+    if (role === "prefix") { if (fragPrefixFound) return; fragPrefixFound = true; }
+    else { if (fragSuffixFound) return; fragSuffixFound = true; }
+    sfxFragment();
+    flashTicker(pick(TICKER_FRAGMENT_FLASHES));
+    updateCaseTag();
+    if (fragPrefixFound && fragSuffixFound) {
+      setTimeout(function () { sfxMatch(); flashTicker(pick(TICKER_MATCH_FLASHES)); }, 260);
+    }
+  }
+
+  // ---- hint scheduling (adapts to whichever half is still missing) ------
   function pageHint(pageId, tier) {
-    var c = CLUES[clueSpot];
+    var missing = nextMissingCarrier();
+
+    if (!missing) {
+      var full = "F-" + prefixStr + suffixStr;
+      if (pageId !== "archive") {
+        return { sel: '#g2-nav [data-goto="archive"]', msg: "&#128374; You&#39;ve got both halves &mdash; head to the Archive and punch " + full + " into the lookup.", delay: tier === 2 ? HINT_DELAY_2 : HINT_DELAY_1, strong: tier === 2 };
+      }
+      return { sel: "#g2-lookup", msg: "&#128374; You&#39;ve got both halves &mdash; " + full + ". Punch it into the lookup.", delay: tier === 2 ? ARCHIVE_HINT_DELAY_2 : ARCHIVE_HINT_DELAY_1, strong: true };
+    }
+
+    var c = CARRIER_INFO[missing.key];
+    var half = halfLabel(missing.role);
+
     if (pageId === "archive") {
+      if (missing.key === "redact") {
+        return tier === 2
+          ? { sel: "#g2-lookup", msg: "&#128374; The " + half + " are under one specific [RETRACTED] bar right here &mdash; keep holding bars down until one gives.", delay: ARCHIVE_HINT_DELAY_2, strong: true }
+          : { sel: "#g2-lookup", msg: "&#128374; Not every bar in this list is just for show&hellip;", delay: ARCHIVE_HINT_DELAY_1 };
+      }
       return tier === 2
-        ? { sel: "#g2-lookup", msg: "&#128374; The number&#39;s " + c.where + " &mdash; go read it, then type it in here.", delay: ARCHIVE_HINT_DELAY_2, strong: true }
-        : { sel: "#g2-lookup", msg: "&#128374; Type the case number here once you&#39;ve tracked it down&hellip;", delay: ARCHIVE_HINT_DELAY_1 };
+        ? { sel: "#g2-lookup", msg: "&#128374; The " + half + " are " + c.where + " &mdash; go track them down, then type the full number here.", delay: ARCHIVE_HINT_DELAY_2, strong: true }
+        : { sel: "#g2-lookup", msg: "&#128374; Type the case number here once you&#39;ve tracked down both halves&hellip;", delay: ARCHIVE_HINT_DELAY_1 };
     }
     if (pageId === c.section) {
-      return { sel: "#g2-clue", msg: "&#128374; There&#39;s the case number &mdash; now punch it into the Archive lookup&hellip;", delay: HINT_DELAY_1 };
+      return { sel: c.foundSel, msg: "&#128374; That&#39;s the " + half + " &mdash; now find the other half.", delay: HINT_DELAY_1 };
     }
     return {
       sel: c.target,
@@ -538,20 +650,22 @@
     app.classList.add("is-tingling");
     app.classList.toggle("is-tingling-strong", !!h.strong);
   }
-  // ---- tier-0 cue: a barely-there shimmer the FIRST time the true clue box
-  // scrolls into view, well before the timed hints (armHint) arm at all. It's
-  // a single soft pulse, not the persistent red/gold outline -- reward for
-  // reading carefully, not a shortcut, and it never repeats once glimpsed.
+  // ---- tier-0 cue: a barely-there shimmer the FIRST time a text-carrier's
+  // clue box scrolls into view, well before the timed hints (armHint) arm at
+  // all. It's a single soft pulse, not the persistent red/gold outline --
+  // reward for reading carefully, not a shortcut, and it never repeats once
+  // that half is found (interactive carriers get their own reveal instead).
   function wireClueGlimpse() {
-    if (clueGlimpsed || won) return;
     var el = document.getElementById("g2-clue");
     if (!el || !("IntersectionObserver" in window)) return;
+    var role = (prefixCarrier === proseCarrier) ? "prefix" : "suffix";
+    if ((role === "prefix" && fragPrefixFound) || (role === "suffix" && fragSuffixFound)) return;
     var io = new IntersectionObserver(function (entries) {
       for (var i = 0; i < entries.length; i++) {
         if (entries[i].isIntersecting) {
-          clueGlimpsed = true;
           el.classList.add("g2-clue-glimpse");
           setTimeout(function () { el.classList.remove("g2-clue-glimpse"); }, 900);
+          onFragmentFound(role);
           io.disconnect();
           break;
         }
@@ -689,9 +803,11 @@
     go(dest);
   }
 
-  // ---- redaction bars: hold to declassify --------------------------------
+  // ---- hold-to-reveal: redaction bars + the front-page photo -------------
   var REDACT_HOLD_MS = 420, REDACT_RESEAL_MS = 1500;
-  var redactHoldTimer = null, redactHoldEl = null;
+  var PHOTO_HOLD_MS = 650, PHOTO_RESEAL_MS = 1600;
+  var redactHoldTimer = null, redactHoldEl = null, photoHoldTimer = null;
+
   function redactCancel() {
     if (redactHoldTimer) { clearTimeout(redactHoldTimer); redactHoldTimer = null; }
     if (redactHoldEl) { redactHoldEl.classList.remove("is-holding"); redactHoldEl = null; }
@@ -701,25 +817,60 @@
     redactHoldEl = null;
     el.classList.remove("is-holding");
     el.classList.add("is-peeled");
+    if (el.dataset.frag === "1") onFragmentFound(prefixCarrier === "redact" ? "prefix" : "suffix");
     setTimeout(function () { el.classList.remove("is-peeled"); }, REDACT_RESEAL_MS);
   }
-  function wireRedactHold() {
+  function photoCancel() {
+    if (photoHoldTimer) { clearTimeout(photoHoldTimer); photoHoldTimer = null; }
+    var el = document.getElementById("g2-photo");
+    if (el) el.classList.remove("is-developing");
+  }
+  function photoDevelop(el) {
+    if (photoHoldTimer) { clearTimeout(photoHoldTimer); photoHoldTimer = null; }
+    el.classList.remove("is-developing");
+    el.classList.add("is-developed");
+    var reveal = document.getElementById("g2-photo-reveal");
+    var isCarrier = prefixCarrier === "photo" || suffixCarrier === "photo";
+    if (reveal) {
+      if (isCarrier) {
+        var role = prefixCarrier === "photo" ? "prefix" : "suffix";
+        reveal.innerHTML = "The " + halfLabel(role) + ", barely legible: " + caseTag(role === "prefix" ? prefixStr : suffixStr);
+      } else {
+        reveal.innerHTML = pick(PHOTO_JOKES);
+      }
+    }
+    if (isCarrier) onFragmentFound(prefixCarrier === "photo" ? "prefix" : "suffix");
+    setTimeout(function () { el.classList.remove("is-developed"); }, PHOTO_RESEAL_MS);
+  }
+  function wireHoldReveal() {
     app.addEventListener("pointerdown", function (e) {
-      var el = e.target.closest(".g2-redact");
-      if (!el || el.classList.contains("is-peeled")) return;
-      redactCancel();
-      redactHoldEl = el;
-      el.classList.add("is-holding");
-      redactHoldTimer = setTimeout(function () { redactPeel(el); }, REDACT_HOLD_MS);
+      var redactEl = e.target.closest(".g2-redact");
+      if (redactEl && !redactEl.classList.contains("is-peeled")) {
+        redactCancel();
+        redactHoldEl = redactEl;
+        redactEl.classList.add("is-holding");
+        redactHoldTimer = setTimeout(function () { redactPeel(redactEl); }, REDACT_HOLD_MS);
+        return;
+      }
+      var photoEl = e.target.closest("#g2-photo");
+      if (photoEl && !photoEl.classList.contains("is-developed")) {
+        if (photoHoldTimer) clearTimeout(photoHoldTimer);
+        photoEl.classList.add("is-developing");
+        photoHoldTimer = setTimeout(function () { photoDevelop(photoEl); }, PHOTO_HOLD_MS);
+      }
     });
     ["pointerup", "pointercancel"].forEach(function (evtName) {
-      app.addEventListener(evtName, function () { redactCancel(); });
+      app.addEventListener(evtName, function () { redactCancel(); photoCancel(); });
     });
     app.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
       var el = e.target;
-      if ((e.key === "Enter" || e.key === " ") && el.classList && el.classList.contains("g2-redact") && !el.classList.contains("is-peeled")) {
+      if (el.classList && el.classList.contains("g2-redact") && !el.classList.contains("is-peeled")) {
         e.preventDefault();
         redactPeel(el);
+      } else if (el.id === "g2-photo" && !el.classList.contains("is-developed")) {
+        e.preventDefault();
+        photoDevelop(el);
       }
     });
   }
@@ -748,9 +899,9 @@
     track.style.animationDuration = (isFinite(duration) && duration > 0 ? duration : 18) + "s";
   }
   // the ticker reacts to what the player just did -- a wrong guess, a decoy
-  // opened, the Goblin showing up -- so the site feels alive without adding
-  // any new reading or UI surface. Capped so it can't grow unbounded over a
-  // long, guess-heavy play.
+  // opened, the Goblin showing up, a fragment found -- so the site feels
+  // alive without adding any new reading or UI surface. Capped so it can't
+  // grow unbounded over a long, guess-heavy play.
   function flashTicker(text) {
     tickerItems.unshift(text);
     if (tickerItems.length > 9) tickerItems.length = 9;
@@ -790,7 +941,7 @@
     wireEasterEgg();
 
     app.addEventListener("click", onTap);
-    wireRedactHold();
+    wireHoldReveal();
     var goblin = document.getElementById("g2-goblin");
     if (goblin) goblin.addEventListener("click", function (e) {
       if (e.target === goblin || e.target.id === "g2-goblin-x") hideGoblin();

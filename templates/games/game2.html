@@ -9,13 +9,15 @@
   buried Spider-Man scoop, which resolves to a hidden 404 page. Reaching it and
   tapping CASE CLOSED calls completeGame('2').
 
-  It's a clue trail, not a signposted tour, tuned to ~60s: Home tells you the
-  photo was pulled to the "morgue" and filed by a CASE NUMBER, and points you to
-  where that number is hiding THIS play (it rotates: the Corrections box, the
-  photo caption, a reader comment, or a classified ad). The Archive lists ~13
-  filed stories -- several with identical redacted headlines -- and only the row
-  whose case number matches leads to the 404. The Green Goblin heckles you along
-  the way. Everything is randomised per play, asset-free, and scoped under g2-.
+  v6: the case number is torn in HALF -- the first two digits and the last two
+  digits are hidden via two INDEPENDENT carriers, randomised every play from a
+  pool of 5: three text clues (Opinion Corrections / City comment / News
+  classified) and two interactive ones (hold the front-page photo to "develop"
+  it; hold down archive [RETRACTED] bars until one gives). Exactly one text
+  carrier + one interactive carrier is picked each round, so it's never pure
+  reading and never pure fumbling. A case-tag strip fills in (F-2?--, then
+  F-2705) as each half is found, and the win screen recaps both sources on a
+  small corkboard. Full mechanics + spoilers: static/games/game2/SOLVING_GUIDE.md.
 #}
 <style>
   #game-viewport { padding: 8px; }
@@ -157,6 +159,20 @@
   .g2-ticker:hover .g2-ticker-track { animation-play-state: paused; }
   @keyframes g2-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
+  /* ---------- case-tag: the "slowly getting closer" progress strip ---------
+     hidden until the first fragment half is found, then shows the case number
+     with unknown digits masked (F-27--), filling in as the second half is
+     found -- a visual sense of assembling the answer, not just a wall of text. */
+  .g2-casetag {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 5px 14px;
+    background: #14100c; border-bottom: 2px solid var(--ink); color: var(--gold);
+    font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.78rem; letter-spacing: 3px;
+  }
+  .g2-casetag[hidden] { display: none; }
+  .g2-casetag-pin { font-size: 0.85rem; flex: 0 0 auto; }
+  .g2-casetag-complete { color: #3ad07a; animation: g2-casetag-pop 0.5s ease; }
+  @keyframes g2-casetag-pop { 0% { transform: scale(1); } 40% { transform: scale(1.07); } 100% { transform: scale(1); } }
+
   /* ---------- scrolling article region ---------- */
   .g2-screen {
     flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -174,12 +190,34 @@
   .g2-byline { font-style: italic; font-size: 0.76rem; color: #6b5f45; border-bottom: 1px solid #d3c8a9; padding-bottom: 7px; margin-bottom: 9px; }
   .g2-body { font-size: 0.9rem; line-height: 1.5; color: #241f16; }
   .g2-body p { margin: 0 0 10px; }
+  /* the front-page photo is a hold-to-develop toy: a cover + label sit on top
+     at rest, and holding it down (like coaxing a Polaroid) fades them out to
+     reveal whatever's underneath -- sometimes a real clue fragment, sometimes
+     just a joke, so trying it is never itself a tell. */
   .g2-photo {
-    background: repeating-linear-gradient(45deg, #2a2620 0 9px, #211d18 9px 18px);
-    color: #cbb98c; border: 1px solid var(--ink); height: 58px; display: flex; align-items: center; justify-content: center;
-    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; letter-spacing: 2px;
-    font-size: 0.6rem; text-transform: uppercase; margin: 2px 0 4px; text-align: center;
+    position: relative; border: 1px solid var(--ink); height: 58px; margin: 2px 0 4px;
+    cursor: pointer; user-select: none; -webkit-user-select: none; overflow: hidden;
   }
+  .g2-photo-cover {
+    position: absolute; inset: 0; z-index: 1;
+    background: repeating-linear-gradient(45deg, #2a2620 0 9px, #211d18 9px 18px);
+    transition: opacity 0.3s ease;
+  }
+  .g2-photo-label {
+    position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #cbb98c;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; letter-spacing: 2px;
+    font-size: 0.6rem; text-transform: uppercase; text-align: center; transition: opacity 0.3s ease;
+  }
+  .g2-photo-label small { display: block; font-size: 0.82em; letter-spacing: 1px; opacity: 0.8; margin-top: 2px; text-transform: none; }
+  .g2-photo-reveal {
+    position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 0 10px; color: #f4efe2; font-family: 'Barlow', sans-serif;
+    font-size: 0.7rem; line-height: 1.25;
+  }
+  .g2-photo.is-developing .g2-photo-cover { transition-duration: 0.65s; opacity: 0.3; }
+  .g2-photo.is-developed .g2-photo-cover, .g2-photo.is-developed .g2-photo-label { opacity: 0; transition-duration: 0.3s; }
+  .g2-photo:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
   .g2-caption { font-family: 'Barlow Condensed', sans-serif; font-size: 0.64rem; letter-spacing: 0.4px; color: #6b5f45; text-transform: uppercase; margin: 0 0 11px; text-align: center; }
   .g2-mission {
     display: flex; gap: 9px; align-items: flex-start; background: var(--paper-hi);
@@ -378,11 +416,12 @@
   .g2-404-copy { font-family: 'Barlow', sans-serif; font-size: 0.86rem; line-height: 1.42; max-width: 30ch; color: #ddd6ea; margin: 0 auto 5px; }
   .g2-404-sign { font-family: 'Barlow', sans-serif; font-style: italic; font-size: 0.76rem; color: #9c95b2; margin: 0 0 14px; }
 
-  /* win-screen recap: a 3-pin corkboard connected by a dashed red string,
-     a quick "how you cracked it" visual instead of more paragraphs. */
-  .g2-corkboard { position: relative; display: flex; justify-content: space-between; align-items: flex-start; max-width: 300px; margin: 4px auto 14px; }
-  .g2-corkboard::before { content: ""; position: absolute; left: 10%; right: 10%; top: 26px; border-top: 2px dashed rgba(232,35,28,0.65); z-index: 0; }
-  .g2-cork-item { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1 1 0; min-width: 0; }
+  /* win-screen recap: a corkboard showing where BOTH halves came from, feeding
+     into the matched case number -- a quick "how you cracked it" visual
+     instead of more paragraphs. */
+  .g2-corkboard { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 300px; margin: 4px auto 14px; }
+  .g2-cork-row { display: flex; justify-content: center; gap: 22px; }
+  .g2-cork-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
   .g2-cork-pin { font-size: 0.85rem; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
   .g2-cork-ico {
     background: #14100c; border: 1px solid rgba(255,204,51,0.5); border-radius: 6px; padding: 5px 8px;
@@ -450,6 +489,11 @@
     <div class="g2-ticker-viewport">
       <div class="g2-ticker-track" id="g2-ticker-track"></div>
     </div>
+  </div>
+
+  <div class="g2-casetag" id="g2-casetag" hidden aria-live="polite">
+    <span class="g2-casetag-pin" aria-hidden="true">&#128204;</span>
+    <span id="g2-casetag-txt">F-????</span>
   </div>
 
   <div class="g2-screen" id="g2-screen"><!-- pages rendered by game2.js --></div>
