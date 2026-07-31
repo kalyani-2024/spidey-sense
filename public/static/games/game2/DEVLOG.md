@@ -116,3 +116,63 @@ All verified via the `/demo/game2` route: full nav pass across all 5 pages
 mute toggle's persistence, the redact hold/quick-tap/keyboard paths, and a
 full brute-forced win reaching the corkboard and the demo's completion
 overlay.
+
+---
+
+## v6 — The "torn in half" rework (real user report: solved in 30s)
+
+A playtester found the 404 in well under a minute: the `caption` clue spot
+put the full case number in plain text under the front-page photo, visible
+on the very first page load with zero navigation. That, plus "it's just one
+sentence somewhere," made the whole hunt collapse to "read one paragraph."
+
+Rather than just re-tuning delays again, the mechanic itself changed:
+
+- **The case number is now split in half** (first two digits / last two
+  digits), each hidden by an independent **carrier** randomly chosen every
+  play from a pool of five: three text carriers (Corrections / City comment
+  / News classified — the old `caption` text-clue was retired) and two new
+  **interactive** carriers:
+  - **Hold the front-page photo** (~650ms) to "develop" it, revealing either
+    a real fragment or a joke.
+  - **Hold a `[RETRACTED]` archive bar** (~420ms) to "declassify" it —
+    exactly one specific bar (out of ~13-17) secretly hides a fragment
+    instead of a flavor word, same styling, no visual tell.
+
+  Exactly one text carrier + one interactive carrier are used each round
+  (never two of the same kind), and which one gets which half is also
+  randomized -- `CARRIER_INFO`, `buildPuzzle()` in `static/js/game2.js`.
+- **Both interactive carriers are always live**, every play, regardless of
+  whether they're this round's real carrier -- so holding the photo or a
+  redact bar is never itself a giveaway for what's real.
+- **Decoys generalized to 2-digit "ref" numbers**: the two unused text
+  carriers always show an unrelated same-looking 2-digit number in
+  unrelated prose, instead of the old full 4-digit decoy case numbers --
+  matches a real fragment's visual weight so digit-count isn't a tell either.
+- **Case-tag progress strip** (`#g2-casetag`, hidden until the first half is
+  found): shows `F-2?--` then `F-2703` as halves are found, with a distinct
+  "match" sound + ticker headline when both come together -- the "you're
+  getting closer, then it clicks" feel this was built for.
+- **Corkboard reworked** to a two-row layout showing both fragment sources
+  (icon + digits + carrier label) feeding into the matched case number,
+  instead of the old single-clue 3-pin version.
+- **Hint system reworked**: `pageHint()` now resolves to whichever half is
+  still missing (`nextMissingCarrier()`) rather than a single `clueSpot`,
+  including a redact-specific "not every bar is just for show" hint on the
+  Archive page and a "you have both halves, go to the Archive" nudge if the
+  player wanders off after finding everything.
+- New SFX: `sfxFragment()` (each half found) and `sfxMatch()` (both found).
+
+Verified via `/demo/game2`: inspected the Home mission text and confirmed
+both riddles render; drove the photo hold via synthetic PointerEvents and
+confirmed the correct half + case-tag update; hit a redact-carrier puzzle,
+confirmed the real fragment bar updates the case-tag while decorative bars
+don't; read all three text-carrier pages across two different puzzle seeds
+and confirmed real-clue vs. decoy-ref rendering; brute-forced two full wins
+(different carrier pairings) and confirmed the corkboard correctly shows
+each play's actual sources and assembled number; no console errors across
+the whole pass.
+
+Docs: `README.md` (this folder) rewritten as the full mechanics reference
+(every carrier, every decoy, tips); `SOLVING_GUIDE.md` updated to match as
+the shorter quick-reference version.
