@@ -4,6 +4,35 @@
 {% block extra_head %}
 <style>
   /* Scoped styles for the Code Ninja bonus round only. */
+
+  /* Overrides the shared .page-bonus .game-shell { background:
+     transparent; } rule (see static/css/style.css) on purpose, using an
+     asset already shipped in this repo (static/img/spidey-wait-backdrop.png,
+     also used on the waiting screen) instead of the animated canvas.
+     Equal specificity to the rule it overrides, but this <style> block
+     loads after style.css in base.html, so it wins the cascade. */
+  .page-bonus .game-shell {
+    background-image: url('{{ url_for('static', filename='img/spidey-wait-backdrop.png') }}');
+    background-size: cover;
+    background-position: 20% center;
+    background-repeat: no-repeat;
+  }
+
+  /* Gold fill + thick black outline, comic-style, matching the
+     reference look -- overrides the shared style.css default (white
+     fill, thin red shadow) for this page only. */
+  .bonus-game-title {
+    color: var(--gold);
+    -webkit-text-stroke: 3px #05060f;
+    paint-order: stroke fill;
+    text-shadow:
+      -3px -3px 0 #05060f, 3px -3px 0 #05060f,
+      -3px 3px 0 #05060f, 3px 3px 0 #05060f,
+      -3px 0 0 #05060f, 3px 0 0 #05060f,
+      0 -3px 0 #05060f, 0 3px 0 #05060f,
+      0 6px 0 var(--red-dark), 0 4px 16px rgba(0, 0, 0, 0.6);
+  }
+
   .ninja-wrap {
     width: 100%;
     display: flex;
