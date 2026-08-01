@@ -7,27 +7,19 @@
 
   /* Overrides the shared .page-bonus .game-shell { background:
      transparent; } rule (see static/css/style.css) on purpose, using an
-     asset already shipped in this repo (static/img/spidey-wait-backdrop.png,
-     also used on the waiting screen) instead of the animated canvas.
-     Equal specificity to the rule it overrides, but this <style> block
-     loads after style.css in base.html, so it wins the cascade. */
+     asset already shipped in this repo (static/img/game-bg-eyes.png,
+     used as the backdrop on the other four games) instead of the
+     animated canvas. Equal specificity to the rule it overrides, but
+     this <style> block loads after style.css in base.html, so it wins
+     the cascade. This asset is a 1080x1920 (9:16) image -- a standard
+     phone aspect ratio -- so plain cover/center behaves consistently
+     across screen sizes without the zoom/position tuning the previous
+     photo needed. */
   .page-bonus .game-shell {
-    background-image: url('{{ url_for('static', filename='img/spidey-wait-backdrop.png') }}');
+    background-image: url('{{ url_for('static', filename='img/game-bg-eyes.png') }}');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-  }
-  /* background-attachment: fixed was tried here to fix phone framing,
-     but iOS Safari has long-standing bugs with fixed backgrounds, so
-     that's dropped. Instead, on narrow screens, zoom in directly on his
-     measured position in the source photo (character bounding box
-     measured at x 7%-99%, y 35%-70% of the image -- center 53%/52%)
-     so he reads as large and clearly visible instead of a thin sliver. */
-  @media (max-width: 600px) {
-    .page-bonus .game-shell {
-      background-size: 220%;
-      background-position: 53% 52%;
-    }
   }
 
   /* The shared .presented-by badge is pinned top-right on every page
