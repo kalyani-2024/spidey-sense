@@ -16,13 +16,18 @@
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    /* Pins the background to the actual visible screen, not the full
-       scrollable height of .game-shell (which is taller than one phone
-       screen once the header + panel content is all stacked). Without
-       this, "center" ends up centered on the whole tall scrollable
-       area rather than what's actually on screen, pushing his face out
-       of view on phones. */
-    background-attachment: fixed;
+  }
+  /* background-attachment: fixed was tried here to fix phone framing,
+     but iOS Safari has long-standing bugs with fixed backgrounds, so
+     that's dropped. Instead, on narrow screens, zoom in directly on his
+     measured position in the source photo (character bounding box
+     measured at x 7%-99%, y 35%-70% of the image -- center 53%/52%)
+     so he reads as large and clearly visible instead of a thin sliver. */
+  @media (max-width: 600px) {
+    .page-bonus .game-shell {
+      background-size: 220%;
+      background-position: 53% 52%;
+    }
   }
 
   /* The shared .presented-by badge is pinned top-right on every page
