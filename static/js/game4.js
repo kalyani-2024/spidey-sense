@@ -388,6 +388,7 @@
     this.$board = root.querySelector("[data-board]");
     this.$solved = root.querySelector("[data-solved]");
     this.$mistakes = root.querySelector("[data-mistakes]");
+    this.$timer = root.querySelector("[data-timer]");
     this.$submitBtn = root.querySelector("[data-submit]");
     this.$shuffleBtn = root.querySelector("[data-shuffle]");
     this.$clearBtn = root.querySelector("[data-clear]");
@@ -439,6 +440,11 @@
       this.$board.appendChild(btn);
       this.tileEls.set(tile.word, btn);
     });
+  };
+
+  Renderer.prototype.renderTimer = function (secondsLeft) {
+    if (!this.$timer) return;
+    this.$timer.textContent = String(secondsLeft).padStart(2, "0");
   };
 
   Renderer.prototype.setSelected = function (word, isSelected) {
@@ -511,6 +517,8 @@
   /* ---------------------------------------------------------
      GAME CONTROLLER
   --------------------------------------------------------- */
+  const TIMER_DURATION = 120;
+
   const Game = {
     async init(rootSelector, puzzleUrl, fallbackUrl) {
       const root = document.querySelector(rootSelector);
@@ -532,6 +540,11 @@
       // Only trust a saved state that represents an in-progress game (not
       // already won or already lost -- either of those should never have
       // been left in storage, but this guards against a stale blob).
+      let locked = false; // true while an animation/resolution is in flight
+      let timerId = null;
+      let timeLeft = TIMER_DURATION;
+      let timerExpires = null;
+
       let engine = null;
       const saved = StateStore.load();
       if (
@@ -542,12 +555,53 @@
         saved.solvedGroupNames.length < 4
       ) {
         engine = PuzzleEngine.fromSavedState(saved, bank);
+        if (typeof saved.timerExpires === "number") {
+          timerExpires = saved.timerExpires;
+        }
       }
       if (!engine) {
         engine = new PuzzleEngine(PuzzleLoader.pickOne(bank));
       }
 
-      let locked = false; // true while an animation/resolution is in flight
+      function stopTimer() {
+        if (timerId !== null) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      function startTimer() {
+        stopTimer();
+        if (typeof timerExpires !== "number") {
+          timerExpires = Date.now() + TIMER_DURATION * 1000;
+        }
+        const remainingMs = timerExpires - Date.now();
+        if (remainingMs <= 0) {
+          renderer.renderTimer(0);
+          setTimeout(() => {
+            renderer.toast("Time's up! Completing...", 1400);
+            if (window.completeGame) window.completeGame("4");
+          }, 10);
+          return;
+        }
+        timeLeft = Math.max(0, Math.ceil(remainingMs / 1000));
+        renderer.renderTimer(timeLeft);
+        timerId = setInterval(() => {
+          const remainingMs = timerExpires - Date.now();
+          const nextLeft = Math.max(0, Math.ceil(remainingMs / 1000));
+          if (nextLeft !== timeLeft) {
+            timeLeft = nextLeft;
+            renderer.renderTimer(timeLeft);
+          }
+          if (remainingMs <= 0) {
+            stopTimer();
+            renderer.renderTimer(0);
+            renderer.toast("Time's up! Completing...", 1400);
+            if (window.completeGame) window.completeGame("4");
+          }
+        }, 1000);
+        persist();
+      }
 
       // FIX: write the current puzzle id / progress to localStorage so a
       // reload picks this back up via PuzzleEngine.fromSavedState above.
@@ -558,7 +612,8 @@
           solvedGroupNames: engine.solved.map((g) => g.name),
           remainingWords: engine.remaining.map((t) => t.word),
           triedGuesses: Array.from(engine.triedGuesses),
-          selectedWords: engine.selected.slice()
+          selectedWords: engine.selected.slice(),
+          timerExpires: timerExpires
         });
       }
 
@@ -591,6 +646,7 @@
       draw();
       persist(); // FIX: cover the very first load too, so an immediate
                  // refresh before any guess still resumes the same puzzle
+      startTimer();
 
       const handlers = {
         onTileTap(word) {
@@ -664,6 +720,7 @@
                 StateStore.clear(); // don't leave a "won" game sitting in storage
                 await AnimationMgr.wait(900);
                 renderer.showWin();
+                stopTimer();
                 await AnimationMgr.wait(700);
                 if (window.completeGame) window.completeGame("4");
                 return;

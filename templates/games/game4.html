@@ -56,6 +56,30 @@
     color: var(--ink-dim);
   }
   .c4-pips { display: flex; gap: 6px; }
+
+  .c4-timer {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 14px;
+    width: fit-content;
+    margin: 0 auto;
+  }
+  .c4-timer-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: var(--ink-dim);
+  }
+  .c4-timer-value {
+    font-family: 'Bangers', cursive;
+    font-size: 1.2rem;
+    color: var(--red);
+  }
   .c4-pip {
     width: 13px; height: 13px;
     border-radius: 50%;
@@ -265,6 +289,11 @@
     <span class="c4-pips" data-mistakes></span>
   </div>
 
+  <div class="c4-timer" aria-live="polite">
+    <span class="c4-timer-label">TIME LEFT</span>
+    <span class="c4-timer-value" data-timer>120</span>s
+  </div>
+
   <div class="c4-solved" data-solved></div>
 
   <div class="c4-board" data-board></div>
@@ -280,6 +309,8 @@
 <div class="c4-win-overlay" data-win-overlay>
   <div class="c4-win-text">WEB COMPLETE!</div>
 </div>
+
+{% block game_controls %}{% endblock %}
 {% endblock %}
 
 {% block game_scripts %}
