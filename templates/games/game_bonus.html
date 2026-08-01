@@ -14,8 +14,16 @@
   .page-bonus .game-shell {
     background-image: url('{{ url_for('static', filename='img/spidey-wait-backdrop.png') }}');
     background-size: cover;
-    background-position: 20% center;
+    background-position: center center;
     background-repeat: no-repeat;
+  }
+
+  /* The shared .presented-by badge is pinned top-right on every page
+     (see static/css/style.css) -- on narrow phones it can overlap this
+     header's content. Push the header down a bit on small screens so
+     they don't collide. */
+  @media (max-width: 420px) {
+    .page-bonus .game-header { margin-top: 44px; }
   }
 
   /* Gold fill + thick black outline, comic-style, matching the
