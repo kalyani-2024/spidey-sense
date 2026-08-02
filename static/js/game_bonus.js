@@ -626,7 +626,7 @@
         console.error("Code Ninja: watchdog fired, round overran -- forcing completion");
         endRound(score >= TARGET_BUGS);
       }
-    }, (ROUND_SECONDS + 12) * 1000);
+    }, (ROUND_SECONDS + 22) * 1000);
   }
 
   function endRound(cleared) {
@@ -658,10 +658,12 @@
     }
 
     // completeGame() is what actually advances the player -- this fires
-    // regardless of whether the cosmetic end-screen above worked.
+    // regardless of whether the cosmetic end-screen above worked. Paused
+    // for a few seconds so the end screen (DEBUGGED! / stats) is
+    // actually readable before the redirect fires.
     window.setTimeout(function () {
       try { completeGame(GAME_ID); } catch (e) { console.error("Code Ninja: completeGame() threw", e); }
-    }, 900);
+    }, 12000);
   }
 
   startBtn.addEventListener("click", startRound);
