@@ -32,10 +32,10 @@
 
   var ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   var MAX_MISTAKES = 5;
+  var WORDS_TO_WIN = 2;
 
-  var entry, guessed, mistakes, gameOver;
+  var entry, guessed, mistakes, gameOver, wordsWon = 0;
 
-  var livesEl = document.getElementById("hsg-lives");
   var bezelEl = document.getElementById("hsg-bezel");
   var titlebarEl = document.getElementById("hsg-titlebar");
   var statusEl = document.getElementById("hsg-status");
@@ -55,17 +55,6 @@
   function pickWord(exclude) {
     var pool = exclude ? WORDS.filter(function (w) { return w.word !== exclude; }) : WORDS;
     return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  function renderLives() {
-    livesEl.innerHTML = "";
-    for (var i = 0; i < MAX_MISTAKES; i++) {
-      var s = document.createElement("span");
-      var alive = i < (MAX_MISTAKES - mistakes);
-      s.className = alive ? "on" : "off";
-      s.textContent = alive ? "\u2764\uFE0F" : "\uD83D\uDC94";
-      livesEl.appendChild(s);
-    }
   }
 
   function renderConsole() {
@@ -151,16 +140,30 @@
 
   function showResult(won) {
     overlayEl.style.display = "flex";
-    headlineEl.textContent = won ? "CASE CRACKED!" : "CRASH!";
-    headlineEl.className = "headline " + (won ? "won" : "lost");
-    sublineEl.textContent = won ? "The web-head saves the day" : "The system went down";
     revealCatEl.textContent = entry.category;
     revealWordEl.textContent = entry.word;
+
     if (won) {
-      // Challenge complete: no retries after a win, game locks here.
-      againBtn.style.display = "none";
-      setTimeout(function () { completeGame('1'); }, 900);
+      wordsWon++;
+      var finished = wordsWon >= WORDS_TO_WIN;
+      headlineEl.textContent = finished ? "CASE CRACKED!" : "WORD CRACKED!";
+      headlineEl.className = "headline won";
+      sublineEl.textContent = finished
+        ? "The web-head saves the day"
+        : wordsWon + " of " + WORDS_TO_WIN + " words down \u2014 one more to go";
+      if (finished) {
+        // Challenge complete: no retries after the 2nd word win, game locks here.
+        againBtn.style.display = "none";
+        setTimeout(function () { completeGame('1'); }, 900);
+      } else {
+        againBtn.textContent = "\u2192 Next Word";
+        againBtn.style.display = "block";
+      }
     } else {
+      headlineEl.textContent = "CRASH!";
+      headlineEl.className = "headline lost";
+      sublineEl.textContent = "The system went down \u2014 try again";
+      againBtn.textContent = "\u21ba Sling Again";
       againBtn.style.display = "block";
     }
   }
@@ -169,7 +172,6 @@
     if (gameOver || guessed.indexOf(letter) !== -1) return;
     guessed.push(letter);
     if (entry.word.indexOf(letter) === -1) mistakes++;
-    renderLives();
     renderConsole();
     renderWord();
     renderKeys();
@@ -182,7 +184,6 @@
     mistakes = 0;
     gameOver = false;
     overlayEl.style.display = "none";
-    renderLives();
     renderConsole();
     renderHint();
     renderWord();
