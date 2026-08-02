@@ -19,10 +19,6 @@
 
   #hsg-root .hsg-inner{position:relative;z-index:5;display:flex;flex-direction:column;gap:10px;}
 
-  /* header */
-  .hsg-presented{display:flex;align-items:center;justify-content:flex-end;gap:6px;}
-  .hsg-presented span{font-family:sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.2em;opacity:.85;}
-  .hsg-presented img{height:30px;width:30px;border-radius:50%;}
   .hsg-titleblock{text-align:center;}
   .hsg-kicker{font-size:.7rem;letter-spacing:.4em;color:var(--accent);margin:0;}
   .hsg-title{font-size:1.9rem;line-height:.9;letter-spacing:1px;margin:2px 0;}
@@ -31,11 +27,13 @@
   .hsg-title .c{color:var(--acm);text-shadow:2px 2px 0 rgba(0,0,0,.4);}
   .hsg-sub{font-family:sans-serif;font-size:.68rem;line-height:1.3;opacity:.85;max-width:280px;margin:4px auto 0;}
 
-  /* lives */
-  .hsg-lives{display:flex;justify-content:center;gap:6px;}
-  .hsg-lives span{font-size:1rem;}
-  .hsg-lives span.on{filter:none;}
-  .hsg-lives span.off{opacity:.3;filter:grayscale(1);}
+  .hsg-gamebox{max-width:360px;margin:0 auto;box-sizing:border-box;padding:6px 4px;
+    display:flex;flex-direction:column;gap:12px;}
+
+  /* hint */
+  .hsg-hint{max-width:320px;margin:0 auto;width:100%;box-sizing:border-box;padding:2px 2px 8px;}
+  .hsg-hint-cat{font-size:.7rem;letter-spacing:.15em;color:var(--accent);}
+  .hsg-hint-text{font-family:sans-serif;font-size:.72rem;margin:3px 0 0;line-height:1.3;}
 
   /* crash monitor */
   .hsg-monitor{max-width:320px;margin:0 auto;width:100%;}
@@ -61,12 +59,7 @@
   .hsg-neck{width:56px;height:22px;margin:2px auto 0;border-left:4px solid oklch(0.86 0.19 90 / .7);border-right:4px solid oklch(0.86 0.19 90 / .7);background:var(--card);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%);}
   .hsg-base{width:140px;height:10px;margin:-2px auto 0;border:4px solid oklch(0.86 0.19 90 / .7);border-radius:8px;background:var(--card);}
 
-  /* hint */
-  .hsg-hint{max-width:320px;margin:0 auto;width:100%;box-sizing:border-box;border:2px dashed oklch(0.86 0.19 90 / .6);border-radius:8px;background:oklch(0.21 0.05 20 / .7);padding:8px 10px;}
-  .hsg-hint-cat{font-size:.7rem;letter-spacing:.15em;color:var(--accent);}
-  .hsg-hint-text{font-family:sans-serif;font-size:.72rem;margin:3px 0 0;line-height:1.3;}
-
-  /* word display (now inside the terminal screen) */
+  /* word display (inside the terminal screen) */
   .hsg-word{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:6px 0;border-top:1px solid oklch(0.88 0.12 150 / .2);margin-top:2px;}
   .hsg-letter{display:flex;flex-direction:column;align-items:center;}
   .hsg-letter .ch{height:24px;display:flex;align-items:flex-end;font-size:1.3rem;color:var(--terminal-fg);}
@@ -76,7 +69,7 @@
   /* keyboard */
   .hsg-keys{display:flex;flex-direction:column;gap:5px;}
   .hsg-row{display:flex;justify-content:center;gap:4px;}
-  .hsg-key{flex:1;max-width:34px;height:36px;border:none;border-radius:6px;background:var(--newspaper);color:oklch(0.2 0.02 40);font-family:'Bangers',cursive;font-size:1rem;}
+  .hsg-key{flex:1;max-width:34px;height:36px;border:none;border-radius:6px;background:var(--newspaper);color:oklch(0.2 0.02 40);font-family:sans-serif;font-weight:700;font-size:.95rem;}
   .hsg-key.correct{background:var(--accent);color:var(--accent-fg);}
   .hsg-key.wrong{background:oklch(0.63 0.26 27 / .8);color:#fff;opacity:.6;}
   .hsg-key:disabled{opacity:.35;}
@@ -98,43 +91,43 @@
   <div class="hsg-inner">
     <header>
       <div class="hsg-titleblock">
-        <p class="hsg-kicker">CHALLENGE 1</p>
+        <p class="hsg-kicker">CHALLENGE 01</p>
         <h1 class="hsg-title"><span class="a">HANG</span><span class="b">-</span><span class="c">SPIDER</span></h1>
-        <p class="hsg-sub">A villain scrambled the city&rsquo;s mainframe. Sling a web at one letter at a time to crack the codeword. Every miss lands a hit on the system. Five strikes and it&rsquo;s lights out.</p>
+        <p class="hsg-sub">A villain scrambled the city&rsquo;s mainframe. Sling a web at one letter at a time to crack the codeword. Every miss lands a hit on the system. Five strikes and it&rsquo;s lights out. Crack two words to save the day.</p>
       </div>
     </header>
 
-    <div class="hsg-lives" id="hsg-lives"></div>
-
-    <div class="hsg-hint">
-      <div class="hsg-hint-cat" id="hsg-hint-cat">LOADING&hellip;</div>
-      <p class="hsg-hint-text" id="hsg-hint-text">Booting the case file&hellip;</p>
-    </div>
-
-    <div class="hsg-monitor">
-      <div class="hsg-bezel" id="hsg-bezel">
-        <div class="hsg-screen">
-          <div class="hsg-titlebar" id="hsg-titlebar">
-            <span>OSCORP // SYS-MONITOR</span>
-            <span id="hsg-status">ONLINE</span>
-          </div>
-          <div class="hsg-console" id="hsg-console">
-            <p>&gt; system stable.<br>&gt; awaiting operator input_</p>
-          </div>
-          <div class="hsg-word" id="hsg-word"></div>
-          <div class="hsg-crashmeter-label">CRITICAL FAILURE</div>
-          <div class="hsg-crashmeter" id="hsg-crashmeter"></div>
-        </div>
-        <div class="hsg-vents">
-          <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <span class="brand">BUGLE-TRON 3000</span>
-        </div>
+    <div class="hsg-gamebox">
+      <div class="hsg-hint">
+        <div class="hsg-hint-cat" id="hsg-hint-cat">LOADING&hellip;</div>
+        <p class="hsg-hint-text" id="hsg-hint-text">Booting the case file&hellip;</p>
       </div>
-      <div class="hsg-neck"></div>
-      <div class="hsg-base"></div>
-    </div>
 
-    <div class="hsg-keys" id="hsg-keys"></div>
+      <div class="hsg-monitor">
+        <div class="hsg-bezel" id="hsg-bezel">
+          <div class="hsg-screen">
+            <div class="hsg-titlebar" id="hsg-titlebar">
+              <span>OSCORP // SYS-MONITOR</span>
+              <span id="hsg-status">ONLINE</span>
+            </div>
+            <div class="hsg-console" id="hsg-console">
+              <p>&gt; system stable.<br>&gt; awaiting operator input_</p>
+            </div>
+            <div class="hsg-word" id="hsg-word"></div>
+            <div class="hsg-crashmeter-label">CRITICAL FAILURE</div>
+            <div class="hsg-crashmeter" id="hsg-crashmeter"></div>
+          </div>
+          <div class="hsg-vents">
+            <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <span class="brand">BUGLE-TRON 3000</span>
+          </div>
+        </div>
+        <div class="hsg-neck"></div>
+        <div class="hsg-base"></div>
+      </div>
+
+      <div class="hsg-keys" id="hsg-keys"></div>
+    </div>
   </div>
 
   <div class="hsg-overlay" id="hsg-overlay" style="display:none;">
