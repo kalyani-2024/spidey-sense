@@ -57,28 +57,15 @@
   }
   .c4-pips { display: flex; gap: 6px; }
 
-  .c4-timer {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 6px;
-    background: rgba(255,255,255,0.08);
-    border: 2px solid var(--line);
-    border-radius: 10px;
-    padding: 8px 14px;
-    width: fit-content;
-    margin: 0 auto;
-  }
-  .c4-timer-label {
-    font-family: 'Courier New', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 1px;
+  .c4-helper {
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--ink-dim);
-  }
-  .c4-timer-value {
-    font-family: 'Bangers', cursive;
-    font-size: 1.2rem;
-    color: var(--red);
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.45;
+    margin: 0 0 2px;
   }
   .c4-pip {
     width: 13px; height: 13px;
@@ -289,10 +276,7 @@
     <span class="c4-pips" data-mistakes></span>
   </div>
 
-  <div class="c4-timer" aria-live="polite">
-    <span class="c4-timer-label">TIME LEFT</span>
-    <span class="c4-timer-value" data-timer>120</span>s
-  </div>
+  <p class="c4-helper">Select four related words and submit. Incorrect guesses cost a life, but duplicate guesses don't. The game will alert you if you're one word away.</p>
 
   <div class="c4-solved" data-solved></div>
 
