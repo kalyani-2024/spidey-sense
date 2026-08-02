@@ -176,3 +176,22 @@ the whole pass.
 Docs: `README.md` (this folder) rewritten as the full mechanics reference
 (every carrier, every decoy, tips); `SOLVING_GUIDE.md` updated to match as
 the shorter quick-reference version.
+
+---
+
+## v7 — Auto-advance on solve (no confirmation click)
+
+The 404 win screen used to show a **"Case Closed ✓"** button that the player
+had to tap before the stamp animation played and `completeGame('2')` fired —
+an extra confirmation step after the puzzle was already solved.
+
+Landing on the buried 404 *is* the solve, so that tap added nothing but
+friction. Removed the button entirely: reaching `notfound` now auto-calls
+`win()` on a short delay (`static/js/game2.js`, `go()`) — just long enough
+(1.4s) for the found-page reveal (corkboard, Spidey art) to land before the
+"Case Closed" stamp animates in and it hands off to the next challenge.
+
+The old button also doubled as the retry affordance if `completeGame()`'s
+network call failed. With no button to restore, `win()`'s failure-path now
+silently retries itself instead (still gated on `won` to avoid a double
+submit, still shows the same `alert()` from `game.js` on genuine failure).

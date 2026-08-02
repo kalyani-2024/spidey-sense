@@ -5,8 +5,9 @@
  *
  * The player browses a living fake Daily Bugle website (a DOM router; swaps the
  * innerHTML of #g2-screen -- window.location is NEVER touched) and tracks down
- * JJJ's buried Spider-Man scoop: a hidden 404. Landing on it and tapping CASE
- * CLOSED calls completeGame('2').
+ * JJJ's buried Spider-Man scoop: a hidden 404. Landing on it IS the solve --
+ * no confirmation click. A "Case Closed" stamp animates in, then it auto-calls
+ * completeGame('2') and hands off to the next challenge.
  *
  * WHY IT CAN'T BE BRUTE-FORCED: the buried file is genuinely UNLISTED -- there
  * is no link to it anywhere. A real 404 is a page nothing points at, so the only
@@ -531,7 +532,6 @@
               'to bury &mdash; and I hear the Goblin&#39;s hopping mad you dug up the number. Nice work, kid.</p>' +
             corkboard() +
             '<p class="g2-404-sign">&mdash; your friendly neighborhood Spider-Man</p>' +
-            '<button type="button" class="g2-win" id="g2-win">Case Closed &#10003;</button>' +
           '</div>'
         );
       }
@@ -761,6 +761,11 @@
     pulseLoadbar();
     armHint(pageId);
     wireClueGlimpse();
+    // No "Case Closed" confirmation click -- finding the buried 404 IS the
+    // solve, so auto-advance straight into the win stamp + redirect. The
+    // delay just lets the found-page reveal (corkboard, Spidey art) land
+    // before the stamp slams down on top of it.
+    if (pageId === "notfound") setTimeout(win, 1400);
     if (pageId === "archive") {
       var inp = document.getElementById("g2-lookup-input");
       if (inp) inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); doPull(); } });
@@ -774,30 +779,25 @@
     sfxWin();
     clearHint();
     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
-    var btn = document.getElementById("g2-win");
-    if (btn) { btn.disabled = true; btn.textContent = "Webbing up…"; }
     app.classList.add("is-won");
     setTimeout(function () {
       completeGame("2");
-      // completeGame() (game.js) navigates away on success; on failure it only
-      // re-enables the default #complete-btn, which this game replaces. If we're
-      // still here a few seconds later the submit failed -- restore the button so
-      // the player can retry instead of being stranded. `won` blocks a double-submit.
+      // completeGame() (game.js) navigates away on success and alert()s on
+      // failure. There's no button here for the player to retry with, so if
+      // we're still here after a grace window the submit failed -- clear
+      // `won` and silently retry rather than stranding them.
       setTimeout(function () {
-        if (!btn) return;
-        btn.disabled = false;
-        btn.textContent = "Case Closed ✓";
         app.classList.remove("is-won");
         won = false;
+        if (currentPageId === "notfound") setTimeout(win, 400);
       }, 2600);
     }, 800);
   }
 
   function onTap(evt) {
-    var el = evt.target.closest("[data-goto], #g2-win");
+    var el = evt.target.closest("[data-goto]");
     if (!el) return;
     evt.preventDefault();
-    if (el.id === "g2-win") { win(); return; }
     var dest = el.dataset.goto;
     if (dest === "pull") { doPull(); return; }
     go(dest);

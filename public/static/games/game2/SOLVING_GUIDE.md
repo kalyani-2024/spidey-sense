@@ -12,8 +12,9 @@ version.
 
 The Green Goblin scrubbed J. Jonah Jameson's exclusive Spider-Man photo off
 the Bugle website. The player browses the fake Bugle site and has to dig up
-the buried story — which lives at a hidden **404 page**. Reaching it and
-tapping **CASE CLOSED** completes the challenge.
+the buried story — which lives at a hidden **404 page**. Reaching it
+completes the challenge automatically — a **CASE CLOSED** stamp animates in
+and hands off to the next challenge, no extra tap needed.
 
 ## Why it can't be brute-forced
 
@@ -62,7 +63,7 @@ on its own.
 4. **In the Archive, try holding a few `[RETRACTED]` bars** if you're still
    missing a half.
 5. Once both halves are found, type the full number into the **morgue file
-   lookup** and hit **PULL** → the 404 loads → **CASE CLOSED**.
+   lookup** and hit **PULL** → the 404 loads → **CASE CLOSED** fires automatically.
 
 A **case-tag strip** at the top (hidden until the first half is found) shows
 progress: `F-2?--` → `F-2703`. The win screen recaps both sources on a small

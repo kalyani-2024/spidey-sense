@@ -429,14 +429,6 @@
   }
   .g2-cork-ico.g2-cork-case { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.5px; color: var(--gold); }
   .g2-cork-lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 0.52rem; letter-spacing: 1px; text-transform: uppercase; color: #9c95b2; text-align: center; }
-  .g2-win {
-    appearance: none; font-family: 'Bangers', sans-serif; letter-spacing: 2px; font-size: clamp(1.05rem, 4.6vw, 1.45rem);
-    color: #fff; background: linear-gradient(180deg, var(--bugle-red), var(--bugle-red-dk)); border: 3px solid #000;
-    border-radius: 10px; padding: 13px 28px; min-height: 50px; cursor: pointer; box-shadow: 4px 4px 0 #000;
-  }
-  .g2-win:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }
-  .g2-win[disabled] { opacity: 0.85; cursor: default; }
-
   .g2-flash { position: absolute; inset: 0; z-index: 9; pointer-events: none; background: #fff; opacity: 0; }
   .g2-app.is-won .g2-flash { animation: g2-flash-anim 0.5s ease-out forwards; }
   @keyframes g2-flash-anim { 0% { opacity: 0.9; } 100% { opacity: 0; } }

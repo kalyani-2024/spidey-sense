@@ -14,7 +14,8 @@ on the code (devs). For a shorter "just tell me how to solve it" version see
 The Green Goblin scrubbed J. Jonah Jameson's exclusive Spider-Man photo off
 the Bugle website. The player browses the fake Bugle site (Home, News, City,
 Opinion, Archive) and has to dig up the buried story, which lives at a hidden
-**404 page**. Reaching it and tapping **CASE CLOSED** completes the challenge.
+**404 page**. Reaching it completes the challenge automatically — a **CASE
+CLOSED** stamp animates in and hands off to the next challenge.
 
 ## Why it can't be brute-forced
 
@@ -114,7 +115,7 @@ reacts," without making any single hold action a giveaway.
    the rest.
 5. Once you have **both halves**, type the full 4-digit number into the
    **morgue file lookup** and hit **PULL**. The buried page (the 404) loads →
-   **CASE CLOSED**.
+   **CASE CLOSED** fires automatically, no extra tap needed.
 
 ## Tips for players
 
