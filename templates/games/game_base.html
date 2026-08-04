@@ -7,6 +7,7 @@
   {% if game_id != 'bonus' %}<div class="game-backdrop-art"></div>{% endif %}
   <div class="game-backdrop-scrim"></div>
   {% include "_presented_by.html" %}
+  {% include "_run_timer.html" %}
   {% if game_id != 'bonus' %}{% include "_bonus_banner.html" %}{% endif %}
 
   <div class="game-shell-content">
@@ -49,6 +50,7 @@
 {% block extra_scripts %}
 <script>window.SPIDEY_RESUME_URL = "{{ url_for('main.dashboard') }}";</script>
 <script src="{{ url_for('static', filename='js/no_back_nav.js') }}"></script>
+<script src="{{ url_for('static', filename='js/run_timer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 {% if game_id != 'bonus' %}<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>{% endif %}
 {% block game_scripts %}{% endblock %}

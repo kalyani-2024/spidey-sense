@@ -24,8 +24,10 @@ A timed, 6-QR arcade run for a university stall event:
    round just means no bonus; neither blocks the main sequence.
 5. Once all four are done, the player scans the second physical QR sticker,
    which stops their timer.
-6. Players never see their own time or a leaderboard. Only event staff can,
-   via `/admin` (Google-login gated, allowlisted emails only).
+6. A live "YOUR TIME" clock runs top-right on every in-run screen so players
+   can see how long they're taking. They still never see the leaderboard or
+   their ranking -- only event staff can, via `/admin` (Google-login gated,
+   allowlisted emails only).
 
 ## Run locally
 
@@ -79,6 +81,7 @@ static/js/game.js           POSTs to /complete-game, handles the token
 static/js/qr_scan.js        Camera-based QR decoding (jsQR)
 static/js/bonus_watcher.js  Shows/hides the full-screen bonus alert
 static/js/no_back_nav.js    Stops Back from re-opening a cleared challenge
+static/js/run_timer.js      Ticks the player's live "YOUR TIME" clock
 ```
 
 ## Anti-cheat, briefly

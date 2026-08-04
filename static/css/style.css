@@ -160,6 +160,47 @@ a { color: inherit; text-decoration: none; }
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
 
+/* ---------- live run clock (templates/_run_timer.html) ---------- */
+/* Sits under the sponsor badge, top-right. Fixed so it stays put on the
+   longer game pages; pointer-events off so it can never eat a tap meant
+   for a mini-game. */
+.run-timer {
+  position: fixed;
+  top: clamp(60px, 9vmin, 78px);
+  right: 16px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 210, 63, 0.35);
+  border-radius: 10px;
+  background: rgba(5, 6, 15, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+.run-timer-label {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  font-size: 0.55rem;
+  color: #9aa8dd;
+  text-transform: uppercase;
+}
+.run-timer-value {
+  font-family: 'Bangers', cursive;
+  letter-spacing: 1px;
+  font-size: clamp(1.05rem, 3vmin, 1.4rem);
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #05060f;
+  font-variant-numeric: tabular-nums;
+}
+/* Run's over -- the number is final, so stop drawing attention to it. */
+.run-timer.is-stopped .run-timer-value { color: #dbe3ff; }
+
 .webgrid-eyebrow {
   font-family: 'Barlow', sans-serif;
   font-size: 0.72rem;
