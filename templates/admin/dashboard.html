@@ -15,6 +15,16 @@
   </div>
 
   <h2 class="admin-title">LEADERBOARD </h2>
+  <p class="scoreboard-rule">
+    {% if roster['scoring_mode'] == 'time_credit' %}
+      Ranked on adjusted time &mdash; clearing the bonus round takes
+      {{ roster['bonus_credit'] }}s off a player's run.
+    {% else %}
+      Ranked bonus-first: everyone who cleared
+      <span class="bonus-badge" title="Cleared the bonus round">B</span>
+      outranks everyone who didn't, fastest time first within each group.
+    {% endif %}
+  </p>
   <div class="scoreboard">
     <div class="scoreboard-row scoreboard-head">
       <span>RANK</span><span>PLAYER</span><span>TIME</span>
@@ -22,8 +32,17 @@
     {% for e in roster['finished'] %}
       <div class="scoreboard-row {{ 'rank-1' if loop.index == 1 else ('rank-2' if loop.index == 2 else ('rank-3' if loop.index == 3 else '')) }}">
         <span class="rank-num">#{{ loop.index }}</span>
-        <span class="rank-name">{{ e['player_name'] }} <small style="color:var(--ink-dim);">({{ e['google_email'] }})</small></span>
-        <span class="rank-time">{{ '%d:%02d'|format((e['elapsed'] // 60)|int, (e['elapsed'] % 60)|int) }}</span>
+        <span class="rank-name">
+          {{ e['player_name'] }}
+          {% if e['bonus_done'] %}<span class="bonus-badge" title="Cleared the bonus round">B</span>{% endif %}
+          <small style="color:var(--ink-dim);">({{ e['google_email'] }})</small>
+        </span>
+        <span class="rank-time">
+          {{ '%d:%02d'|format((e['score'] // 60)|int, (e['score'] % 60)|int) }}
+          {% if roster['scoring_mode'] == 'time_credit' and e['bonus_done'] %}
+            <small class="rank-time-raw">raw {{ '%d:%02d'|format((e['elapsed'] // 60)|int, (e['elapsed'] % 60)|int) }}</small>
+          {% endif %}
+        </span>
       </div>
     {% else %}
       <div class="scoreboard-row"><span class="scoreboard-empty">Nobody has finished yet.</span></div>

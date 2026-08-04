@@ -10,8 +10,10 @@ CREATE TABLE IF NOT EXISTS players (
     completed_games   TEXT DEFAULT '',
     game_unlocks_at   REAL,   -- when current_game stops being a countdown and becomes playable
     game_token        TEXT,   -- one-time token the current game's page must echo back to complete it
-    bonus_unlock_at   REAL,   -- when the bonus round becomes available
-    bonus_expires_at  REAL,   -- when the bonus round disappears if unused
+    bonus_slot        TEXT,   -- which game's countdown hosts the bonus alert (see BONUS_SLOTS)
+    bonus_unlock_at   REAL,   -- when the alert fires; NULL until the slot is reached
+    bonus_expires_at  REAL,   -- alert deadline, then extended to the play deadline once opened
+    bonus_started_at  REAL,   -- when the player tapped through to the bonus page
     bonus_completed   INTEGER DEFAULT 0,
     bonus_token       TEXT,   -- one-time token the bonus round's page must echo back to complete it
     created_at        REAL

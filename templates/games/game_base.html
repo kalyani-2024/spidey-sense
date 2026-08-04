@@ -45,6 +45,8 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>window.SPIDEY_RESUME_URL = "{{ url_for('main.dashboard') }}";</script>
+<script src="{{ url_for('static', filename='js/no_back_nav.js') }}"></script>
 <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 {% if game_id != 'bonus' %}<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>{% endif %}
 {% block game_scripts %}{% endblock %}

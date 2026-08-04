@@ -3,8 +3,9 @@
    reload needed) the instant it unlocks, and hides it again once it expires. #}
 <div
   id="bonus-banner"
-  class="bonus-banner {{ 'bonus-banner-visible' if bonus['state'] == 'available' else '' }}"
+  class="bonus-banner {{ 'bonus-banner-visible' if bonus['state'] == 'available' and not bonus.get('started') else '' }}"
   data-state="{{ bonus['state'] }}"
+  data-started="{{ '1' if bonus.get('started') else '' }}"
   data-unlock-at="{{ bonus.get('unlock_at', '') }}"
   data-expires-at="{{ bonus.get('expires_at', '') }}"
 >
@@ -17,3 +18,13 @@
   </a>
   <span class="bonus-banner-timer" id="bonus-banner-timer"></span>
 </div>
+
+{# A player who tapped into the bonus and then backed out still has their
+   play window running -- the full-screen alert is suppressed for them (it
+   would be shouting about something they already answered), so give them a
+   quiet way back in for as long as the bonus is still live. #}
+{% if bonus['state'] == 'available' and bonus.get('started') %}
+<a href="{{ url_for('games.play_game', game_id='bonus') }}" class="bonus-resume-link">
+  RESUME BONUS MISSION <span class="arrow">&rarr;</span>
+</a>
+{% endif %}

@@ -9,6 +9,21 @@ games_bp = Blueprint("games", __name__)
 VALID_GAME_IDS = set(MAIN_SEQUENCE) | {BONUS_ID}
 
 
+@games_bp.after_request
+def _no_store(response):
+    """
+    Never let a challenge page sit in the browser's back/forward cache. The
+    server already refuses to re-run a cleared game (see play_game and
+    mark_game_complete), but without this the phone would happily re-paint
+    the old page from cache when the player hits Back -- looking like the
+    challenge is replayable even though nothing they did there would count.
+    """
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 def _current_player():
     player_id = session.get("player_id")
     if not player_id:
@@ -41,6 +56,12 @@ def play_game(game_id):
         if bonus["state"] != "available":
             flash("The bonus round isn't here right now -- keep going, it can pop up anytime.")
             return redirect(url_for("main.dashboard"))
+
+        # Landing here converts the short alert window into a full play window
+        # -- see models.open_bonus(). Re-read the status so the page renders
+        # with the extended deadline rather than the alert's few seconds.
+        player = models.open_bonus(player["player_id"]) or player
+        bonus = models.bonus_status(player)
 
         return render_template(
             "games/game_bonus.html",
