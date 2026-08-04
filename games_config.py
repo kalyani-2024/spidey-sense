@@ -67,10 +67,13 @@ BONUS_SLOT_LEAD_IN = 20       # earliest the alert can fire into the countdown
 # Miss it and the bonus is gone for good -- it never blocks the main run.
 BONUS_WINDOW_SECONDS = 10     # 10 seconds to respond
 
-# Once the player DOES tap through to the bonus page, they get this long to
-# actually play it. Separate from the alert window above -- otherwise a 10s
-# alert would also mean 10s to finish the whole mini-game.
-BONUS_PLAY_SECONDS = 180      # 3 minutes to clear the bonus once opened
+# Once the player DOES tap through to the bonus page, how long they get to
+# actually play it. None = no limit: the 10s above is purely a window to
+# respond to the alert, and having responded they solve it in their own
+# time. Their overall run clock is still running, so dawdling already costs
+# them on the leaderboard -- a second deadline here would just risk yanking
+# the puzzle away mid-solve.
+BONUS_PLAY_SECONDS = None
 
 # --- Scoring / ranking -------------------------------------------------
 #

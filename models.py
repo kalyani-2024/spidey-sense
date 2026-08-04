@@ -193,24 +193,34 @@ def bonus_status(player, now=None):
             return {"state": "pending", "started": False}
         return {"state": "expired", "started": False}
 
+    if started_at:
+        # They answered the alert in time, so the alert's deadline has done
+        # its job and stops applying -- from here they solve it in their own
+        # time (BONUS_PLAY_SECONDS). `started` is also what stops the
+        # full-screen alert re-appearing over someone mid-bonus-game.
+        if expires_at is not None and now > expires_at:
+            return {"state": "expired", "started": True}
+        return {"state": "available", "started": True,
+                "unlock_at": unlock_at, "expires_at": expires_at,
+                "seconds_left": None if expires_at is None else round(expires_at - now),
+                "token": player["bonus_token"]}
+
     if now < unlock_at:
         return {"state": "locked", "started": False,
                 "unlock_at": unlock_at, "expires_at": expires_at}
     if now <= expires_at:
-        # `started` is what stops the full-screen alert from re-appearing over
-        # a player who already tapped through and is mid-bonus-game.
-        return {"state": "available", "started": bool(started_at),
+        return {"state": "available", "started": False,
                 "unlock_at": unlock_at, "expires_at": expires_at,
                 "seconds_left": round(expires_at - now), "token": player["bonus_token"]}
-    return {"state": "expired", "started": bool(started_at)}
+    return {"state": "expired", "started": False}
 
 
 def open_bonus(player_id):
     """
     Called when the player actually lands on the bonus page. The alert window
-    (BONUS_WINDOW_SECONDS) is only how long they have to *respond*; from here
-    they get BONUS_PLAY_SECONDS to finish the mini-game itself, so the short
-    alert doesn't also become the play clock.
+    (BONUS_WINDOW_SECONDS) is only how long they have to *respond* -- getting
+    here means they made it, so the alert's deadline is replaced by the play
+    window (BONUS_PLAY_SECONDS, None for no limit).
     """
     player = get_player(player_id)
     if player is None or player["bonus_completed"]:
@@ -221,12 +231,13 @@ def open_bonus(player_id):
         return player
 
     if player["bonus_started_at"]:
-        return player  # already opened; don't extend the clock again
+        return player  # already opened; don't restart the clock
 
+    play_deadline = None if BONUS_PLAY_SECONDS is None else now + BONUS_PLAY_SECONDS
     db = get_db()
     db.execute(
         "UPDATE players SET bonus_started_at = ?, bonus_expires_at = ? WHERE player_id = ?",
-        (now, now + BONUS_PLAY_SECONDS, player_id),
+        (now, play_deadline, player_id),
     )
     db.commit()
     return get_player(player_id)
@@ -254,6 +265,12 @@ def mark_game_complete(player_id, game_id, token=None):
     now = time.time()
 
     if game_id == BONUS_ID:
+        # With no play deadline, an opened-but-unfinished bonus would other-
+        # wise stay completable forever -- including after the player scanned
+        # the finish QR, which would re-rank a run that was already over.
+        if player["end_time"]:
+            return {"ok": False, "error": "Your run is already finished"}
+
         status = bonus_status(player, now)
         if status["state"] != "available":
             return {"ok": False, "error": f"Bonus round is not available ({status['state']})"}
