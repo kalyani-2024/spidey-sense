@@ -44,17 +44,6 @@
     </div>
   </div>
 </div>
-
-{# Shown by completeGame() (static/js/game.js) after the server accepts a
-   win, so every game gets the same beat of "you cleared it" before the
-   countdown screen replaces it. #}
-<div class="cleared-overlay" id="cleared-overlay" aria-hidden="true">
-  <div class="cleared-card">
-    <div class="cleared-kicker">{{ 'BONUS ROUND' if game_id == 'bonus' else 'CHALLENGE ' ~ game_info['number'] }}</div>
-    <div class="cleared-headline">CLEARED!</div>
-    <p class="cleared-sub" id="cleared-sub">Spidey-sense resting&hellip;</p>
-  </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}

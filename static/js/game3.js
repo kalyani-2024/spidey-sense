@@ -247,17 +247,14 @@
     lockBoard = true;
     // No "swing again" button here: clearing both layers finishes the
     // challenge, so the only thing that should follow is the handoff to
-    // the next one. completeGame() shows the shared CLEARED! card and then
-    // moves the player on -- without this call the run dead-ended here and
-    // Game 4 was unreachable.
+    // the next one. Without this completeGame() call the run dead-ended
+    // here and Game 4 was unreachable.
     showEndOverlay(
       "win",
       "WEB SECURED!",
       "Both layers mapped. Queens sleeps easy tonight, wall-crawler."
     );
-    setTimeout(function () {
-      completeGame("3", { message: "Both web layers mapped. Next threat incoming…" });
-    }, 1500);
+    setTimeout(function () { completeGame("3"); }, GAME_HANDOFF_MS);
   }
 
   function resetGame() {

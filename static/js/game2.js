@@ -780,8 +780,9 @@
     clearHint();
     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
     app.classList.add("is-won");
+    // Hold the win screen long enough to read before handing off.
     setTimeout(function () {
-      completeGame("2", { message: "Story unburied. Next threat incoming…" });
+      completeGame("2");
       // completeGame() (game.js) navigates away on success and alert()s on
       // failure. There's no button here for the player to retry with, so if
       // we're still here after a grace window the submit failed -- clear
@@ -791,7 +792,7 @@
         won = false;
         if (currentPageId === "notfound") setTimeout(win, 400);
       }, 2600);
-    }, 800);
+    }, GAME_HANDOFF_MS);
   }
 
   function onTap(evt) {

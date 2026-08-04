@@ -591,7 +591,7 @@
       // Fail safe = don't strand them, NOT don't grant the bonus. Since the
       // bonus now decides leaderboard rank, handing it out for free because
       // our canvas blew up would outrank players who actually earned it.
-      try { forfeitBonus({ message: "Bonus round couldn't start -- back to your run." }); } catch (e2) {}
+      try { forfeitBonus(); } catch (e2) {}
     }
   }
   function startRoundInner() {
@@ -666,17 +666,14 @@
     // no golden B and no leaderboard benefit. Either way the player is
     // handed back to their main run; a lost bonus never blocks it.
     //
-    // Short pause first so the stats line is readable. (This used to wait
-    // 12s, long enough that the round looked frozen.)
+    // Pause first so the end screen and stats line are readable. (This used
+    // to wait 12s, long enough that the round looked frozen.)
     window.setTimeout(function () {
       try {
-        if (cleared) {
-          completeGame(GAME_ID, { message: "Bonus banked! Back to the main run…" });
-        } else {
-          forfeitBonus({ message: "Not all bugs squashed -- no bonus this time." });
-        }
+        if (cleared) completeGame(GAME_ID);
+        else forfeitBonus();
       } catch (e) { console.error("Code Ninja: handoff threw", e); }
-    }, 2200);
+    }, GAME_HANDOFF_MS);
   }
 
   startBtn.addEventListener("click", startRound);

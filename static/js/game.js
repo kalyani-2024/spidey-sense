@@ -13,58 +13,17 @@
  *
  * There is deliberately no "mark this complete" button on the page: the
  * only way past a challenge is winning it.
+ *
+ * Note there is no shared "you cleared it!" screen here -- every game
+ * already ends on its own win message. Show yours, hold it long enough to
+ * read (see GAME_HANDOFF_MS below), then call completeGame().
  */
 
-/* How long the shared "CLEARED!" card sits on screen before the next
- * screen replaces it. Your game does NOT need its own pause before
- * calling completeGame() -- this is that pause, and every game gets the
- * same one. */
-var CLEARED_MESSAGE_MS = 2600;
-
-function showClearedOverlay(message) {
-  var overlay = document.getElementById("cleared-overlay");
-  if (!overlay) return false;
-  var sub = document.getElementById("cleared-sub");
-  if (sub && message) sub.textContent = message;
-  overlay.classList.add("is-visible");
-  overlay.setAttribute("aria-hidden", "false");
-  return true;
-}
-
-/*
- * Bonus round only: the player finished it but did NOT clear it. Only an
- * outright clear counts as having done the bonus, so this closes their
- * attempt with no credit and returns them to the main run. Never call this
- * for a main-sequence game -- those are cleared or still in progress,
- * there's no "lost" state.
- */
-function forfeitBonus(options) {
-  options = options || {};
-  var viewport = document.getElementById("game-viewport");
-  var token = viewport ? viewport.dataset.token : null;
-
-  function goBack(url) {
-    var overlay = document.getElementById("cleared-overlay");
-    var headline = overlay ? overlay.querySelector(".cleared-headline") : null;
-    if (headline) headline.textContent = "MISSED IT!";
-    var shown = showClearedOverlay(
-      options.message || "The bonus got away -- back to the main run."
-    );
-    window.setTimeout(function () {
-      window.location.href = url || "/dashboard";
-    }, shown ? CLEARED_MESSAGE_MS : 0);
-  }
-
-  fetch("/forfeit-bonus", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: token }),
-  })
-    .then(function (res) { return res.json(); })
-    .then(function (data) { goBack(data && data.redirect); })
-    // Even if the call fails, don't strand them on a finished bonus screen.
-    .catch(function () { goBack("/dashboard"); });
-}
+/* Suggested pause between a game's own win message appearing and its
+ * completeGame() call: long enough to read and register, short enough not
+ * to feel like the page has hung. Games import this rather than each
+ * picking their own number, so the whole run has one rhythm. */
+var GAME_HANDOFF_MS = 2400;
 
 function completeGame(gameId, options) {
   options = options || {};
@@ -80,12 +39,7 @@ function completeGame(gameId, options) {
     .then(function (res) { return res.json(); })
     .then(function (data) {
       if (data.status === "ok" && data.redirect) {
-        // Hold on a "CLEARED!" card for a beat instead of yanking the
-        // player straight into the next countdown the instant they win.
-        var shown = showClearedOverlay(options.message);
-        window.setTimeout(function () {
-          window.location.href = data.redirect;
-        }, shown ? CLEARED_MESSAGE_MS : 0);
+        window.location.href = data.redirect;
       } else {
         alert(data.message || "Something went wrong -- try again.");
       }
@@ -93,4 +47,28 @@ function completeGame(gameId, options) {
     .catch(function () {
       alert("Network error -- check your connection and try again.");
     });
+}
+
+/*
+ * Bonus round only: the player finished it but did NOT clear it. Only an
+ * outright clear counts as having done the bonus, so this closes their
+ * attempt with no credit and returns them to the main run. Never call this
+ * for a main-sequence game -- those are cleared or still in progress,
+ * there's no "lost" state.
+ */
+function forfeitBonus() {
+  var viewport = document.getElementById("game-viewport");
+  var token = viewport ? viewport.dataset.token : null;
+
+  function goBack(url) { window.location.href = url || "/dashboard"; }
+
+  fetch("/forfeit-bonus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: token }),
+  })
+    .then(function (res) { return res.json(); })
+    .then(function (data) { goBack(data && data.redirect); })
+    // Even if the call fails, don't strand them on a finished bonus screen.
+    .catch(function () { goBack("/dashboard"); });
 }

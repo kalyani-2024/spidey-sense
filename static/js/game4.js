@@ -664,10 +664,11 @@
                 StateStore.clear(); // don't leave a "won" game sitting in storage
                 await AnimationMgr.wait(900);
                 renderer.showWin();
-                await AnimationMgr.wait(700);
-                if (window.completeGame) {
-                  window.completeGame("4", { message: "All four groups found. Head for the finish QR!" });
-                }
+                // Hold the win screen long enough to read before handing off.
+                await AnimationMgr.wait(
+                  typeof GAME_HANDOFF_MS === "number" ? GAME_HANDOFF_MS : 2400
+                );
+                if (window.completeGame) window.completeGame("4");
                 return;
               }
               persist(); // keep reloads on the same puzzle/progress

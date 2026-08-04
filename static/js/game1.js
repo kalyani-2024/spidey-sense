@@ -153,12 +153,10 @@
         : wordsWon + " of " + WORDS_TO_WIN + " words down \u2014 one more to go";
       if (finished) {
         // Challenge complete: no retries after the 2nd word win, game locks
-        // here. The pause lets "CASE CRACKED!" actually register before
-        // completeGame() takes over with the shared CLEARED! card.
+        // here. The pause is how long "CASE CRACKED!" stays readable before
+        // the handoff to the next challenge.
         againBtn.style.display = "none";
-        setTimeout(function () {
-          completeGame('1', { message: "Mainframe descrambled. Next threat incoming…" });
-        }, 1500);
+        setTimeout(function () { completeGame('1'); }, GAME_HANDOFF_MS);
       } else {
         againBtn.textContent = "\u2192 Next Word";
         againBtn.style.display = "block";
