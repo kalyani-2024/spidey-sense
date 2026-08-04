@@ -650,7 +650,11 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px;
+  /* Extra bottom padding biases the centred block upward (by about half the
+     extra) so "NEXT THREAT INCOMING" clears Spider-Man's head in the
+     backdrop instead of sitting across it. Padding rather than a fixed
+     offset so short screens just centre normally and never clip the top. */
+  padding: 30px 30px calc(30px + 22vh);
   text-align: center;
 }
 .waiting-eyebrow {
