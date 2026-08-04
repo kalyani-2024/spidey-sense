@@ -21,10 +21,11 @@
         </div>
       </div>
       <h1 class="game-title">{{ game_info['title'] }}</h1>
+      {% if game_info.get('blurb') %}
+      <p class="game-blurb">{{ game_info['blurb'] }}</p>
+      {% endif %}
     </div>
     {% endblock %}
-
-    <div class="game-spacer"></div>
 
     <div class="game-viewport" id="game-viewport" data-game-id="{{ game_id }}" data-token="{{ token }}">
       {% block game_content %}
@@ -35,11 +36,23 @@
       {% endblock %}
     </div>
 
+    {# No "mark complete" button lives here any more -- it let a player skip
+       a challenge without solving it. The only way past a challenge is the
+       game itself calling completeGame(). #}
     <div class="game-cta-row">
-      {% block game_controls %}
-      <button type="button" id="complete-btn" class="btn-complete">THWIP! I DID IT</button>
-      {% endblock %}
+      {% block game_controls %}{% endblock %}
     </div>
+  </div>
+</div>
+
+{# Shown by completeGame() (static/js/game.js) after the server accepts a
+   win, so every game gets the same beat of "you cleared it" before the
+   countdown screen replaces it. #}
+<div class="cleared-overlay" id="cleared-overlay" aria-hidden="true">
+  <div class="cleared-card">
+    <div class="cleared-kicker">{{ 'BONUS ROUND' if game_id == 'bonus' else 'CHALLENGE ' ~ game_info['number'] }}</div>
+    <div class="cleared-headline">CLEARED!</div>
+    <p class="cleared-sub" id="cleared-sub">Spidey-sense resting&hellip;</p>
   </div>
 </div>
 {% endblock %}

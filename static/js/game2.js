@@ -781,7 +781,7 @@
     if (stallTimer) { clearTimeout(stallTimer); stallTimer = null; }
     app.classList.add("is-won");
     setTimeout(function () {
-      completeGame("2");
+      completeGame("2", { message: "Story unburied. Next threat incoming…" });
       // completeGame() (game.js) navigates away on success and alert()s on
       // failure. There's no button here for the player to retry with, so if
       // we're still here after a grace window the submit failed -- clear

@@ -152,9 +152,13 @@
         ? "The web-head saves the day"
         : wordsWon + " of " + WORDS_TO_WIN + " words down \u2014 one more to go";
       if (finished) {
-        // Challenge complete: no retries after the 2nd word win, game locks here.
+        // Challenge complete: no retries after the 2nd word win, game locks
+        // here. The pause lets "CASE CRACKED!" actually register before
+        // completeGame() takes over with the shared CLEARED! card.
         againBtn.style.display = "none";
-        setTimeout(function () { completeGame('1'); }, 900);
+        setTimeout(function () {
+          completeGame('1', { message: "Mainframe descrambled. Next threat incoming…" });
+        }, 1500);
       } else {
         againBtn.textContent = "\u2192 Next Word";
         againBtn.style.display = "block";

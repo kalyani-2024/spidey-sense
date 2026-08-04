@@ -665,7 +665,9 @@
                 await AnimationMgr.wait(900);
                 renderer.showWin();
                 await AnimationMgr.wait(700);
-                if (window.completeGame) window.completeGame("4");
+                if (window.completeGame) {
+                  window.completeGame("4", { message: "All four groups found. Head for the finish QR!" });
+                }
                 return;
               }
               persist(); // keep reloads on the same puzzle/progress

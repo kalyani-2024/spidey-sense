@@ -658,12 +658,16 @@
     }
 
     // completeGame() is what actually advances the player -- this fires
-    // regardless of whether the cosmetic end-screen above worked. Paused
-    // for a few seconds so the end screen (DEBUGGED! / stats) is
-    // actually readable before the redirect fires.
+    // regardless of whether the cosmetic end-screen above worked. Short
+    // pause so the stats line is readable, then completeGame() adds the
+    // shared CLEARED! card on top. This used to wait 12s, which was long
+    // enough that the round looked frozen and players tapped around
+    // thinking they had to do something to move on.
     window.setTimeout(function () {
-      try { completeGame(GAME_ID); } catch (e) { console.error("Code Ninja: completeGame() threw", e); }
-    }, 12000);
+      try {
+        completeGame(GAME_ID, { message: "Bonus banked! Back to the main run…" });
+      } catch (e) { console.error("Code Ninja: completeGame() threw", e); }
+    }, 2200);
   }
 
   startBtn.addEventListener("click", startRound);

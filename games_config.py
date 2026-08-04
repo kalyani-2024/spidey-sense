@@ -15,12 +15,23 @@ MAIN_SEQUENCE = ["1", "2", "3", "4"]
 # Special, non-sequential game that can drop in at a random point.
 BONUS_ID = "bonus"
 
+# title/number head the shared page shell; `blurb` is the one-line "what am I
+# meant to do here" that sits under the title, ABOVE the game container. Each
+# mini-game's own markup should not repeat any of these three -- the shell
+# already renders them (see templates/games/game_base.html).
 GAME_INFO = {
-    "1": {"title": "HangCode",         "number": "I"},
-    "2": {"title": "404 Hunt",         "number": "II"},
-    "3": {"title": "Memory Match",     "number": "III"},
-    "4": {"title": "Tech Connections", "number": "IV"},
-    "bonus": {"title": "Code Ninja",   "number": "BONUS"},
+    "1": {"title": "Hang-Spider", "number": "I",
+          "blurb": "A villain scrambled the city's mainframe. Sling a web at one letter "
+                   "at a time to crack the codeword. Five misses and it's lights out."},
+    "2": {"title": "404 Hunt", "number": "II",
+          "blurb": "The Bugle buried the story. Dig through the archive and find the "
+                   "case number they didn't want you to see."},
+    "3": {"title": "Memory Match", "number": "III",
+          "blurb": "Match every logo to its name. Clear a web layer to reveal the next."},
+    "4": {"title": "Tech Connections", "number": "IV",
+          "blurb": "Sixteen tiles, four hidden groups. Find what connects them."},
+    "bonus": {"title": "Code Ninja", "number": "BONUS",
+              "blurb": "Slice fast. Stay clean. Go!"},
 }
 
 # Logical state meaning "all mini-games done, go scan the final stall QR".

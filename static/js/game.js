@@ -11,15 +11,28 @@
  * page, not a hand-crafted call to /complete-game. You never need to read
  * or generate this token yourself.
  *
- * The default "MARK CHALLENGE COMPLETE" button (present until a real
- * mini-game replaces game_controls) just calls this directly.
+ * There is deliberately no "mark this complete" button on the page: the
+ * only way past a challenge is winning it.
  */
-function completeGame(gameId) {
-  var btn = document.getElementById("complete-btn");
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "LOADING NEXT CHALLENGE...";
-  }
+
+/* How long the shared "CLEARED!" card sits on screen before the next
+ * screen replaces it. Your game does NOT need its own pause before
+ * calling completeGame() -- this is that pause, and every game gets the
+ * same one. */
+var CLEARED_MESSAGE_MS = 2600;
+
+function showClearedOverlay(message) {
+  var overlay = document.getElementById("cleared-overlay");
+  if (!overlay) return false;
+  var sub = document.getElementById("cleared-sub");
+  if (sub && message) sub.textContent = message;
+  overlay.classList.add("is-visible");
+  overlay.setAttribute("aria-hidden", "false");
+  return true;
+}
+
+function completeGame(gameId, options) {
+  options = options || {};
 
   var viewport = document.getElementById("game-viewport");
   var token = viewport ? viewport.dataset.token : null;
@@ -32,30 +45,17 @@ function completeGame(gameId) {
     .then(function (res) { return res.json(); })
     .then(function (data) {
       if (data.status === "ok" && data.redirect) {
-        window.location.href = data.redirect;
+        // Hold on a "CLEARED!" card for a beat instead of yanking the
+        // player straight into the next countdown the instant they win.
+        var shown = showClearedOverlay(options.message);
+        window.setTimeout(function () {
+          window.location.href = data.redirect;
+        }, shown ? CLEARED_MESSAGE_MS : 0);
       } else {
         alert(data.message || "Something went wrong -- try again.");
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "MARK CHALLENGE COMPLETE";
-        }
       }
     })
     .catch(function () {
       alert("Network error -- check your connection and try again.");
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "MARK CHALLENGE COMPLETE";
-      }
     });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  var btn = document.getElementById("complete-btn");
-  var viewport = document.getElementById("game-viewport");
-  if (btn && viewport) {
-    btn.addEventListener("click", function () {
-      completeGame(viewport.dataset.gameId);
-    });
-  }
-});

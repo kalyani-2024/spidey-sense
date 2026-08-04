@@ -238,21 +238,26 @@
       '<div class="mm-end-card">' +
         '<div class="mm-end-title">' + title + '</div>' +
         '<p class="mm-end-sub">' + sub + '</p>' +
-        '<button type="button" class="btn-complete mm-end-btn" id="mm-restart-btn">' +
-          "SWING AGAIN" +
-        '</button>' +
       '</div>';
-    document.getElementById("mm-restart-btn").addEventListener("click", resetGame);
   }
 
   function onWin() {
+    if (gameOver) return;
     gameOver = true;
     lockBoard = true;
+    // No "swing again" button here: clearing both layers finishes the
+    // challenge, so the only thing that should follow is the handoff to
+    // the next one. completeGame() shows the shared CLEARED! card and then
+    // moves the player on -- without this call the run dead-ended here and
+    // Game 4 was unreachable.
     showEndOverlay(
       "win",
       "WEB SECURED!",
       "Both layers mapped. Queens sleeps easy tonight, wall-crawler."
     );
+    setTimeout(function () {
+      completeGame("3", { message: "Both web layers mapped. Next threat incoming…" });
+    }, 1500);
   }
 
   function resetGame() {

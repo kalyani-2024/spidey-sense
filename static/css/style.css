@@ -775,9 +775,23 @@ a { color: inherit; text-decoration: none; }
   color: #fff;
   text-shadow: 2px 2px 0 var(--red);
 }
-.game-spacer { flex: 1; }
+/* The one-line "what am I meant to do" under the title. Every game's brief
+   lives here, above the container -- games must not repeat it inside. */
+.game-blurb {
+  font-family: 'Barlow', sans-serif;
+  margin: 8px 0 0;
+  max-width: 46ch;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.78);
+}
 
 .game-viewport {
+  /* flex:1 so the container takes the leftover height and the mini-game
+     fills it. This used to be a flex:1 spacer ABOVE the container instead,
+     which shoved every game down the page and left a big empty gap under
+     the title on the shorter games. */
+  flex: 1 1 auto;
   min-height: 210px;
   background: rgba(8, 11, 24, 0.62);
   backdrop-filter: blur(3px);
@@ -785,13 +799,69 @@ a { color: inherit; text-decoration: none; }
   border: 3px dashed rgba(255, 210, 63, 0.55);
   border-radius: 22px;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 8px 22px 18px;
+  padding: 16px;
+}
+/* Direct children stretch to the container's width so a game actually
+   occupies its box rather than sitting in a narrow column inside it. */
+.game-viewport > * { width: 100%; }
+.page-bonus .game-viewport { border-color: rgba(255, 210, 63, 0.6); }
+.game-cta-row:empty { display: none; }
+.game-cta-row { padding: 0 22px 22px; }
+
+/* ---------- shared "challenge cleared" beat (static/js/game.js) ---------- */
+.cleared-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 22px 18px;
-  padding: 20px;
+  padding: 24px;
+  background: rgba(5, 6, 15, 0.9);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
 }
-.page-bonus .game-viewport { border-color: rgba(255, 210, 63, 0.6); }
-.game-cta-row { padding: 0 22px 30px; }
+.cleared-overlay.is-visible { opacity: 1; visibility: visible; }
+.cleared-card {
+  text-align: center;
+  border: 3px dashed var(--gold);
+  border-radius: 22px;
+  background: rgba(8, 11, 24, 0.95);
+  padding: 28px 32px;
+  max-width: 420px;
+  animation: cleared-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes cleared-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.cleared-kicker {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+.cleared-headline {
+  font-family: 'Bangers', cursive;
+  font-size: clamp(2.4rem, 9vmin, 3.6rem);
+  line-height: 1;
+  margin: 6px 0 0;
+  color: #fff;
+  text-shadow: 3px 3px 0 var(--red);
+}
+.cleared-sub {
+  font-family: 'Barlow', sans-serif;
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+}
 .placeholder-panel { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .placeholder-icon {
   width: 56px;

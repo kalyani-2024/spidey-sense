@@ -1,19 +1,7 @@
 {% extends "games/game_base.html" %}
 
-{% block game_header %}
-<div class="game-header">
-  <div class="game-header-row">
-    <span class="game-number">CHALLENGE {{ game_info['number'] }}</span>
-    <div class="progress-dots">
-      {% for step in main_sequence or ['1','2','3','4'] %}
-        <span class="dot {{ 'dot-done' if step in progress['completed'] else '' }} {{ 'dot-active' if step == game_id else '' }}"></span>
-      {% endfor %}
-    </div>
-  </div>
-  <h1 class="game-title">Web of Memory</h1>
-  <div class="mm-subtitle">Match every logo to its name. Clear a web layer to reveal the next.</div>
-</div>
-{% endblock %}
+{# game_header is deliberately NOT overridden: the shared shell already
+   renders CHALLENGE III / the title / the brief from GAME_INFO. #}
 
 {% block game_content %}
 <div class="mm-game" id="mm-game">
@@ -44,16 +32,6 @@
 
 {% block extra_head %}
 <style>
-  .mm-subtitle {
-    font-family: 'Barlow', sans-serif;
-    font-weight: 600;
-    font-size: clamp(0.75rem, 2vmin, 0.95rem);
-    color: #ffe6a1;
-    margin-top: 6px;
-    max-width: 320px;
-    line-height: 1.35;
-  }
-
   .game-viewport:has(#mm-game) {
     padding: 14px;
     align-items: stretch;
@@ -270,11 +248,6 @@
     font-size: 0.9rem;
     line-height: 1.4;
     margin: 0 0 18px;
-  }
-  .mm-end-btn {
-    border: none;
-    cursor: pointer;
-    width: 100%;
   }
 </style>
 {% endblock %}
