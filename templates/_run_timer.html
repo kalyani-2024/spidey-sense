@@ -9,7 +9,6 @@
      id="run-timer"
      data-elapsed="{{ elapsed | default(0, true) | int }}"
      data-running="{{ '0' if player.get('end_time') else '1' }}">
-  <span class="run-timer-label">YOUR TIME</span>
-  <span class="run-timer-value" id="run-timer-value">--:--</span>
+  <span class="run-timer-value" id="run-timer-value" title="Your run time">--:--</span>
 </div>
 {% endif %}

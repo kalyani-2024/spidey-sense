@@ -139,6 +139,8 @@ a { color: inherit; text-decoration: none; }
   top: 16px;
   right: 16px;
   z-index: 20;
+  /* On in-run screens the clock takes the corner and this drops below it;
+     see the body:has(#run-timer) rule further down. */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -161,33 +163,24 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ---------- live run clock (templates/_run_timer.html) ---------- */
-/* Sits under the sponsor badge, top-right. Fixed so it stays put on the
-   longer game pages; pointer-events off so it can never eat a tap meant
-   for a mini-game. */
+/* Takes the top-right corner; the sponsor badge drops below it (see the
+   :has() rule under .presented-by). No label -- a mm:ss clock in the corner
+   reads as a clock. Fixed so it stays put on the longer game pages;
+   pointer-events off so it can never eat a tap meant for a mini-game. */
 .run-timer {
   position: fixed;
-  top: clamp(60px, 9vmin, 78px);
+  top: 14px;
   right: 16px;
   z-index: 30;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-  padding: 5px 10px;
+  align-items: center;
+  padding: 3px 12px;
   border: 1px solid rgba(255, 210, 63, 0.35);
-  border-radius: 10px;
+  border-radius: 999px;
   background: rgba(5, 6, 15, 0.6);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   pointer-events: none;
-}
-.run-timer-label {
-  font-family: 'Barlow', sans-serif;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  font-size: 0.55rem;
-  color: #9aa8dd;
-  text-transform: uppercase;
 }
 .run-timer-value {
   font-family: 'Bangers', cursive;
@@ -200,6 +193,12 @@ a { color: inherit; text-decoration: none; }
 }
 /* Run's over -- the number is final, so stop drawing attention to it. */
 .run-timer.is-stopped .run-timer-value { color: #dbe3ff; }
+
+/* Only on pages that actually render the clock: push the sponsor badge
+   down so the two stack (clock first) instead of colliding in the corner.
+   Screens without a run in progress -- sign-in, suit-up, results -- keep
+   the badge in the corner as before. */
+body:has(#run-timer) .presented-by { top: 56px; }
 
 .webgrid-eyebrow {
   font-family: 'Barlow', sans-serif;

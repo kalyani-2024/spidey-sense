@@ -11,8 +11,8 @@
 {% block content %}
 <div class="scan-shell mode-{{ mode }}">
   <div class="scan-top-bar"></div>
-  {% include "_presented_by.html" %}
   {% include "_run_timer.html" %}
+  {% include "_presented_by.html" %}
   <div class="scan-eyebrow">{{ eyebrow or (mode|upper ~ ' SCAN') }}</div>
   <div class="scan-banner"><h1 class="scan-banner-title">SPIDEY SENSE</h1></div>
 
