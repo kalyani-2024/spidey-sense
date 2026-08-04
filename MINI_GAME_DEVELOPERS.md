@@ -50,11 +50,31 @@ When the player wins, call:
 completeGame('1');   // or '2', '3', '4', 'bonus' -- your game's id
 ```
 
-That's it. Token handling, session, anti-cheat, and redirecting to the next
-screen are all automatic (`static/js/game.js`, already loaded on your page
--- don't call `/complete-game` yourself). Do not use `document.title`,
-`window.location`, or a `<meta refresh>` to navigate away when the player
-finishes -- always go through `completeGame()`.
+That's it. Token handling, session, anti-cheat, the "CLEARED!" message, and
+redirecting to the next screen are all automatic (`static/js/game.js`,
+already loaded on your page -- don't call `/complete-game` yourself). Do
+not use `document.title`, `window.location`, or a `<meta refresh>` to
+navigate away when the player finishes -- always go through
+`completeGame()`. There is no "mark complete" button on the page: winning
+your game is the only way past it.
+
+`completeGame()` means **the player cleared your challenge**. The four
+main-sequence games have no losing state -- a player who fails just keeps
+playing until they win -- so for games 1-4 that's the only call you need.
+
+**The bonus round is different**: it can be lost, and only an outright
+clear counts. If the player finishes it without clearing it, call
+
+```js
+forfeitBonus();     // bonus round ONLY -- no credit, returns them to the run
+```
+
+instead. That closes their one attempt: no golden B on the leaderboard, no
+ranking benefit, and no replay. Never call it from a main-sequence game.
+
+Your title, challenge number, and one-line brief are rendered by the page
+shell from `GAME_INFO` in `games_config.py`, above your container -- don't
+repeat them inside your own markup.
 
 ## Design constraints
 

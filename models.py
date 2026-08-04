@@ -243,6 +243,37 @@ def open_bonus(player_id):
     return get_player(player_id)
 
 
+def forfeit_bonus(player_id, token=None):
+    """
+    Record that the player played the bonus round and did NOT clear it.
+
+    Clearing the bonus means clearing it outright (all bugs fixed / the
+    "DEBUGGED!" ending); running out of time is a loss, not a pass. This
+    closes their one attempt -- bonus_completed stays 0, so they get no
+    golden B and no leaderboard credit, and the round can't be replayed.
+    """
+    player = get_player(player_id)
+    if player is None or player["bonus_completed"]:
+        return player
+
+    now = time.time()
+    status = bonus_status(player, now)
+    if status["state"] != "available":
+        return player
+    if not token or token != status.get("token"):
+        return player
+
+    db = get_db()
+    # Expiring it is what closes the attempt: bonus_status() then reports
+    # "expired", the alert never comes back, and /game/bonus stops loading.
+    db.execute(
+        "UPDATE players SET bonus_expires_at = ? WHERE player_id = ?",
+        (now - 1, player_id),
+    )
+    db.commit()
+    return get_player(player_id)
+
+
 def mark_game_complete(player_id, game_id, token=None):
     """
     Validate + record a game completion. This is the ONLY place completion

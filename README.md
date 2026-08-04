@@ -19,8 +19,9 @@ A timed, 6-QR arcade run for a university stall event:
    countdown is drawn per-player from `BONUS_SLOTS`, so it never lands at
    the very start or the very end of a run. The 10 seconds is only the
    window to *respond*; once they're in, they solve it in their own time.
-   Missing the alert just means no bonus; it never blocks the main
-   sequence.
+   It counts only if they **clear** it outright -- running out of time is a
+   loss, and it's one attempt either way. Missing the alert or losing the
+   round just means no bonus; neither blocks the main sequence.
 5. Once all four are done, the player scans the second physical QR sticker,
    which stops their timer.
 6. Players never see their own time or a leaderboard. Only event staff can,

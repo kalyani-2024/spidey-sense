@@ -105,6 +105,24 @@ def play_game(game_id):
     )
 
 
+@games_bp.route("/forfeit-bonus", methods=["POST"])
+def forfeit_bonus():
+    """
+    Called by the bonus round's JS when the player finishes it WITHOUT
+    clearing it. Only an outright clear counts as having done the bonus, so
+    this closes the attempt with no credit rather than passing them.
+    """
+    player_id = session.get("player_id")
+    if not player_id:
+        return jsonify({"status": "error", "message": "No active session"}), 401
+
+    payload = request.get_json(silent=True) or request.form
+    models.forfeit_bonus(player_id, payload.get("token"))
+    # Always send them back into their run: a lost bonus never blocks the
+    # main sequence, and there's nothing left for them on this page.
+    return jsonify({"status": "ok", "redirect": url_for("main.dashboard")})
+
+
 @games_bp.route("/complete-game", methods=["POST"])
 def complete_game():
     """Called by a mini-game's JS once the player finishes the challenge."""

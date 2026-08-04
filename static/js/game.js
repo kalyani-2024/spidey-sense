@@ -31,6 +31,41 @@ function showClearedOverlay(message) {
   return true;
 }
 
+/*
+ * Bonus round only: the player finished it but did NOT clear it. Only an
+ * outright clear counts as having done the bonus, so this closes their
+ * attempt with no credit and returns them to the main run. Never call this
+ * for a main-sequence game -- those are cleared or still in progress,
+ * there's no "lost" state.
+ */
+function forfeitBonus(options) {
+  options = options || {};
+  var viewport = document.getElementById("game-viewport");
+  var token = viewport ? viewport.dataset.token : null;
+
+  function goBack(url) {
+    var overlay = document.getElementById("cleared-overlay");
+    var headline = overlay ? overlay.querySelector(".cleared-headline") : null;
+    if (headline) headline.textContent = "MISSED IT!";
+    var shown = showClearedOverlay(
+      options.message || "The bonus got away -- back to the main run."
+    );
+    window.setTimeout(function () {
+      window.location.href = url || "/dashboard";
+    }, shown ? CLEARED_MESSAGE_MS : 0);
+  }
+
+  fetch("/forfeit-bonus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: token }),
+  })
+    .then(function (res) { return res.json(); })
+    .then(function (data) { goBack(data && data.redirect); })
+    // Even if the call fails, don't strand them on a finished bonus screen.
+    .catch(function () { goBack("/dashboard"); });
+}
+
 function completeGame(gameId, options) {
   options = options || {};
 

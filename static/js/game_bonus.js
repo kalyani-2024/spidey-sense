@@ -588,7 +588,10 @@
     } catch (e) {
       console.error("Code Ninja: failed to start, failing safe", e);
       completed = true;
-      try { completeGame(GAME_ID); } catch (e2) {}
+      // Fail safe = don't strand them, NOT don't grant the bonus. Since the
+      // bonus now decides leaderboard rank, handing it out for free because
+      // our canvas blew up would outrank players who actually earned it.
+      try { forfeitBonus({ message: "Bonus round couldn't start -- back to your run." }); } catch (e2) {}
     }
   }
   function startRoundInner() {
@@ -646,7 +649,7 @@
         ? "Zero mistakes. Absolute unit."
         : cleared
           ? "Code's clean. Nice reflexes, ninja."
-          : "Round's over -- still counts!";
+          : "Didn't squash them all -- the bonus got away.";
       endStats.textContent =
         "bugs_fixed: " + score + "/" + TARGET_BUGS +
         "  |  best_streak: " + bestStreak +
@@ -657,16 +660,22 @@
       console.error("Code Ninja: error rendering end screen (non-fatal)", e);
     }
 
-    // completeGame() is what actually advances the player -- this fires
-    // regardless of whether the cosmetic end-screen above worked. Short
-    // pause so the stats line is readable, then completeGame() adds the
-    // shared CLEARED! card on top. This used to wait 12s, which was long
-    // enough that the round looked frozen and players tapped around
-    // thinking they had to do something to move on.
+    // The bonus only counts if it was actually CLEARED -- all TARGET_BUGS
+    // squashed, i.e. the "DEBUGGED!"/"FLAWLESS!" ending. Running out of
+    // time is a loss: forfeitBonus() closes the attempt with no credit, so
+    // no golden B and no leaderboard benefit. Either way the player is
+    // handed back to their main run; a lost bonus never blocks it.
+    //
+    // Short pause first so the stats line is readable. (This used to wait
+    // 12s, long enough that the round looked frozen.)
     window.setTimeout(function () {
       try {
-        completeGame(GAME_ID, { message: "Bonus banked! Back to the main run…" });
-      } catch (e) { console.error("Code Ninja: completeGame() threw", e); }
+        if (cleared) {
+          completeGame(GAME_ID, { message: "Bonus banked! Back to the main run…" });
+        } else {
+          forfeitBonus({ message: "Not all bugs squashed -- no bonus this time." });
+        }
+      } catch (e) { console.error("Code Ninja: handoff threw", e); }
     }, 2200);
   }
 
