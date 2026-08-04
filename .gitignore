@@ -17,3 +17,6 @@ env/
 Thumbs.db
 .vscode/
 .vercel
+
+# GAME4:PUZZLE_SOLUTIONS
+**/puzzles.json
