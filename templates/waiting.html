@@ -6,7 +6,10 @@
 <div class="waiting-shell">
   <div class="waiting-backdrop-art"></div>
   <div class="waiting-backdrop-scrim"></div>
-  {% include "_presented_by.html" %}
+  <div class="top-right-bar">
+    {% include "_run_timer.html" %}
+    {% include "_presented_by.html" %}
+  </div>
   {% include "_bonus_banner.html" %}
 
   <div class="waiting-shell-content">
@@ -19,12 +22,15 @@
       <span class="countdown-value" id="countdown-value">--:--</span>
     </div>
 
-    <p class="waiting-copy">Stay alert! Your Spidey-Sense might <b class="tingle-word">tingle</b> at any second&hellip;</p>
+    <p class="waiting-copy">Stay alert! Your Spidey-Sense might <b class="tingle-word">tingle</b> any second&hellip;</p>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script>window.SPIDEY_RESUME_URL = "{{ url_for('main.dashboard') }}";</script>
+<script src="{{ url_for('static', filename='js/no_back_nav.js') }}"></script>
+<script src="{{ url_for('static', filename='js/run_timer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>
 <script>
   (function () {

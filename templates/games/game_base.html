@@ -6,7 +6,10 @@
 <div class="game-shell">
   {% if game_id != 'bonus' %}<div class="game-backdrop-art"></div>{% endif %}
   <div class="game-backdrop-scrim"></div>
-  {% include "_presented_by.html" %}
+  <div class="top-right-bar">
+    {% include "_run_timer.html" %}
+    {% include "_presented_by.html" %}
+  </div>
   {% if game_id != 'bonus' %}{% include "_bonus_banner.html" %}{% endif %}
 
   <div class="game-shell-content">
@@ -21,10 +24,11 @@
         </div>
       </div>
       <h1 class="game-title">{{ game_info['title'] }}</h1>
+      {% if game_info.get('blurb') %}
+      <p class="game-blurb">{{ game_info['blurb'] }}</p>
+      {% endif %}
     </div>
     {% endblock %}
-
-    <div class="game-spacer"></div>
 
     <div class="game-viewport" id="game-viewport" data-game-id="{{ game_id }}" data-token="{{ token }}">
       {% block game_content %}
@@ -35,16 +39,20 @@
       {% endblock %}
     </div>
 
+    {# No "mark complete" button lives here any more -- it let a player skip
+       a challenge without solving it. The only way past a challenge is the
+       game itself calling completeGame(). #}
     <div class="game-cta-row">
-      {% block game_controls %}
-      <button type="button" id="complete-btn" class="btn-complete">THWIP! I DID IT</button>
-      {% endblock %}
+      {% block game_controls %}{% endblock %}
     </div>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script>window.SPIDEY_RESUME_URL = "{{ url_for('main.dashboard') }}";</script>
+<script src="{{ url_for('static', filename='js/no_back_nav.js') }}"></script>
+<script src="{{ url_for('static', filename='js/run_timer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 {% if game_id != 'bonus' %}<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>{% endif %}
 {% block game_scripts %}{% endblock %}

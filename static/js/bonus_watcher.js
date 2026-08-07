@@ -10,9 +10,14 @@
   if (!banner) return;
 
   var state = banner.dataset.state;
+  var started = banner.dataset.started === "1";
   var unlockAt = parseFloat(banner.dataset.unlockAt);
   var expiresAt = parseFloat(banner.dataset.expiresAt);
   var timerEl = document.getElementById("bonus-banner-timer");
+
+  // Already tapped through and playing it -- don't slam the full-screen
+  // alert back over them if they navigate back to a wait screen.
+  if (started) return;
 
   function show() {
     banner.classList.add("bonus-banner-visible");
@@ -28,9 +33,16 @@
       hide();
       return;
     }
-    var m = Math.floor(remaining / 60).toString().padStart(2, "0");
-    var s = Math.floor(remaining % 60).toString().padStart(2, "0");
-    if (timerEl) timerEl.textContent = "(" + m + ":" + s + ")";
+    if (!timerEl) return;
+    // The alert window is only a few seconds long, so a bare second count
+    // reads far more urgently here than a padded 00:07 clock would.
+    if (remaining < 60) {
+      timerEl.textContent = "(" + Math.ceil(remaining) + "s)";
+    } else {
+      var m = Math.floor(remaining / 60).toString().padStart(2, "0");
+      var s = Math.floor(remaining % 60).toString().padStart(2, "0");
+      timerEl.textContent = "(" + m + ":" + s + ")";
+    }
   }
 
   if (state === "available") {

@@ -11,15 +11,22 @@
  * page, not a hand-crafted call to /complete-game. You never need to read
  * or generate this token yourself.
  *
- * The default "MARK CHALLENGE COMPLETE" button (present until a real
- * mini-game replaces game_controls) just calls this directly.
+ * There is deliberately no "mark this complete" button on the page: the
+ * only way past a challenge is winning it.
+ *
+ * Note there is no shared "you cleared it!" screen here -- every game
+ * already ends on its own win message. Show yours, hold it long enough to
+ * read (see GAME_HANDOFF_MS below), then call completeGame().
  */
-function completeGame(gameId) {
-  var btn = document.getElementById("complete-btn");
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "LOADING NEXT CHALLENGE...";
-  }
+
+/* Suggested pause between a game's own win message appearing and its
+ * completeGame() call: long enough to read and register, short enough not
+ * to feel like the page has hung. Games import this rather than each
+ * picking their own number, so the whole run has one rhythm. */
+var GAME_HANDOFF_MS = 2400;
+
+function completeGame(gameId, options) {
+  options = options || {};
 
   var viewport = document.getElementById("game-viewport");
   var token = viewport ? viewport.dataset.token : null;
@@ -35,27 +42,33 @@ function completeGame(gameId) {
         window.location.href = data.redirect;
       } else {
         alert(data.message || "Something went wrong -- try again.");
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "MARK CHALLENGE COMPLETE";
-        }
       }
     })
     .catch(function () {
       alert("Network error -- check your connection and try again.");
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "MARK CHALLENGE COMPLETE";
-      }
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  var btn = document.getElementById("complete-btn");
+/*
+ * Bonus round only: the player finished it but did NOT clear it. Only an
+ * outright clear counts as having done the bonus, so this closes their
+ * attempt with no credit and returns them to the main run. Never call this
+ * for a main-sequence game -- those are cleared or still in progress,
+ * there's no "lost" state.
+ */
+function forfeitBonus() {
   var viewport = document.getElementById("game-viewport");
-  if (btn && viewport) {
-    btn.addEventListener("click", function () {
-      completeGame(viewport.dataset.gameId);
-    });
-  }
-});
+  var token = viewport ? viewport.dataset.token : null;
+
+  function goBack(url) { window.location.href = url || "/dashboard"; }
+
+  fetch("/forfeit-bonus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: token }),
+  })
+    .then(function (res) { return res.json(); })
+    .then(function (data) { goBack(data && data.redirect); })
+    // Even if the call fails, don't strand them on a finished bonus screen.
+    .catch(function () { goBack("/dashboard"); });
+}

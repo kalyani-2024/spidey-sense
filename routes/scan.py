@@ -68,6 +68,7 @@ def scan_finish_page():
                            eyebrow="FINAL STRETCH",
                            heading="RUSH BACK NOW",
                            subcopy="Fastest total time wins.",
+                           player=player, elapsed=models.elapsed_seconds(player),
                            submit_url=url_for("scan.mark_finish_scan"))
 
 

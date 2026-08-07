@@ -134,6 +134,25 @@ a { color: inherit; text-decoration: none; }
   gap: 24px;
 }
 
+/* Top-right row holding the run clock and the sponsor badge side by side,
+   clock first. Used on in-run screens; pages without a clock still include
+   .presented-by on its own, which positions itself (below). */
+.top-right-bar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* Inside the row the badge is just a flex item -- the row owns the corner. */
+.top-right-bar .presented-by {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
 .presented-by {
   position: absolute;
   top: 16px;
@@ -159,6 +178,34 @@ a { color: inherit; text-decoration: none; }
   display: block;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
 }
+
+/* ---------- live run clock (templates/_run_timer.html) ---------- */
+/* Sits inline to the LEFT of the sponsor badge in .top-right-bar, which
+   owns the positioning. No label -- a mm:ss counter up there reads as a
+   clock. pointer-events off so it can never eat a tap meant for a
+   mini-game. */
+.run-timer {
+  display: flex;
+  align-items: center;
+  padding: 3px 12px;
+  border: 1px solid rgba(255, 210, 63, 0.35);
+  border-radius: 999px;
+  background: rgba(5, 6, 15, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+.run-timer-value {
+  font-family: 'Bangers', cursive;
+  letter-spacing: 1px;
+  font-size: clamp(1.05rem, 3vmin, 1.4rem);
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 1px 1px 0 #05060f;
+  font-variant-numeric: tabular-nums;
+}
+/* Run's over -- the number is final, so stop drawing attention to it. */
+.run-timer.is-stopped .run-timer-value { color: #dbe3ff; }
 
 .webgrid-eyebrow {
   font-family: 'Barlow', sans-serif;
@@ -650,7 +697,11 @@ a { color: inherit; text-decoration: none; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px;
+  /* Extra bottom padding biases the centred block upward (by about half the
+     extra) so "NEXT THREAT INCOMING" clears Spider-Man's head in the
+     backdrop instead of sitting across it. Padding rather than a fixed
+     offset so short screens just centre normally and never clip the top. */
+  padding: 30px 30px calc(30px + 22vh);
   text-align: center;
 }
 .waiting-eyebrow {
@@ -775,9 +826,23 @@ a { color: inherit; text-decoration: none; }
   color: #fff;
   text-shadow: 2px 2px 0 var(--red);
 }
-.game-spacer { flex: 1; }
+/* The one-line "what am I meant to do" under the title. Every game's brief
+   lives here, above the container -- games must not repeat it inside. */
+.game-blurb {
+  font-family: 'Barlow', sans-serif;
+  margin: 8px 0 0;
+  max-width: 46ch;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.78);
+}
 
 .game-viewport {
+  /* flex:1 so the container takes the leftover height and the mini-game
+     fills it. This used to be a flex:1 spacer ABOVE the container instead,
+     which shoved every game down the page and left a big empty gap under
+     the title on the shorter games. */
+  flex: 1 1 auto;
   min-height: 210px;
   background: rgba(8, 11, 24, 0.62);
   backdrop-filter: blur(3px);
@@ -785,13 +850,18 @@ a { color: inherit; text-decoration: none; }
   border: 3px dashed rgba(255, 210, 63, 0.55);
   border-radius: 22px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  margin: 0 22px 18px;
-  padding: 20px;
+  margin: 8px 22px 18px;
+  padding: 16px;
 }
+/* Direct children stretch to the container's width so a game actually
+   occupies its box rather than sitting in a narrow column inside it. */
+.game-viewport > * { width: 100%; }
 .page-bonus .game-viewport { border-color: rgba(255, 210, 63, 0.6); }
-.game-cta-row { padding: 0 22px 30px; }
+.game-cta-row:empty { display: none; }
+.game-cta-row { padding: 0 22px 22px; }
+
 .placeholder-panel { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .placeholder-icon {
   width: 56px;
@@ -978,6 +1048,57 @@ a { color: inherit; text-decoration: none; }
 .rank-num { color: var(--ink-dim); font-weight: bold; }
 .rank-name { color: var(--ink); text-transform: uppercase; }
 .rank-time { color: var(--gold); font-weight: bold; text-align: right; }
+.rank-time-raw {
+  display: block;
+  color: var(--ink-dim);
+  font-weight: normal;
+  font-size: 0.65rem;
+}
+/* Golden B -- marks a player who cleared the bonus round. */
+.bonus-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold) 0%, #cc9900 100%);
+  color: #1a1200;
+  font-family: 'Bangers', cursive;
+  font-size: 0.95rem;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-indent: 1px;
+  box-shadow: 0 0 8px rgba(255,204,51,0.6);
+  vertical-align: middle;
+}
+/* Quiet "get back into the bonus you already opened" link (see
+   _bonus_banner.html) -- deliberately not the full-screen alert. */
+.bonus-resume-link {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 8px 16px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  background: rgba(0,0,0,0.75);
+  color: var(--gold);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.scoreboard-rule {
+  margin: 4px 0 0;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
 .rank-1 { background: rgba(255,204,51,0.12); }
 .rank-1 .rank-num { color: var(--gold); }
 .rank-2 { background: rgba(255,255,255,0.05); }

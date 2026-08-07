@@ -13,8 +13,10 @@ _REQUIRED_COLUMNS = {
     "google_email": "TEXT",
     "game_unlocks_at": "REAL",
     "game_token": "TEXT",
+    "bonus_slot": "TEXT",
     "bonus_unlock_at": "REAL",
     "bonus_expires_at": "REAL",
+    "bonus_started_at": "REAL",
     "bonus_completed": "INTEGER DEFAULT 0",
     "bonus_token": "TEXT",
 }

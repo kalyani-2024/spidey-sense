@@ -1,0 +1,14 @@
+{# Live run clock, pinned top-right under the sponsor badge.
+
+   Ticks up from the server-computed `elapsed` rather than from the player's
+   own start_time, so a phone with a wrong clock still shows the same number
+   the leaderboard will rank them on. Presentation only -- the authoritative
+   time is always end_time - start_time, computed server-side. #}
+{% if player and player.get('start_time') %}
+<div class="run-timer{{ ' is-stopped' if player.get('end_time') else '' }}"
+     id="run-timer"
+     data-elapsed="{{ elapsed | default(0, true) | int }}"
+     data-running="{{ '0' if player.get('end_time') else '1' }}">
+  <span class="run-timer-value" id="run-timer-value" title="Your run time">--:--</span>
+</div>
+{% endif %}

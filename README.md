@@ -10,14 +10,24 @@ A timed, 6-QR arcade run for a university stall event:
 1. Player signs in with Google (`/`).
 2. Player scans the first physical QR sticker at the stall (in-app camera
    scan) -- this starts their timer.
-3. Four mini-games in a fixed order, each preceded by a 3-minute countdown.
-4. A bonus round can interrupt at a random point during any countdown
-   (a full-screen "ALERT" -- tap it to play the bonus challenge). Missing it
-   just means no bonus; it never blocks the main sequence.
+3. Four mini-games in a fixed order. The first one starts immediately on
+   scanning; the other three are each preceded by a 3-minute countdown.
+   Once a challenge is cleared the player cannot get back into it -- Back
+   just returns them to wherever they actually are.
+4. A bonus round interrupts one of those countdowns (a full-screen "ALERT",
+   on screen for 10 seconds -- tap it to play the bonus challenge). Which
+   countdown is drawn per-player from `BONUS_SLOTS`, so it never lands at
+   the very start or the very end of a run. The 10 seconds is only the
+   window to *respond*; once they're in, they solve it in their own time.
+   It counts only if they **clear** it outright -- running out of time is a
+   loss, and it's one attempt either way. Missing the alert or losing the
+   round just means no bonus; neither blocks the main sequence.
 5. Once all four are done, the player scans the second physical QR sticker,
    which stops their timer.
-6. Players never see their own time or a leaderboard. Only event staff can,
-   via `/admin` (Google-login gated, allowlisted emails only).
+6. A live "YOUR TIME" clock runs top-right on every in-run screen so players
+   can see how long they're taking. They still never see the leaderboard or
+   their ranking -- only event staff can, via `/admin` (Google-login gated,
+   allowlisted emails only).
 
 ## Run locally
 
@@ -51,8 +61,8 @@ db.py                     SQLite connection + schema init/migration
 models.py                 Player state machine: countdowns, tokens, bonus
                            scheduling, anti-cheat validation
 games_config.py           Single source of truth for the mini-game lineup,
-                           pacing (countdown length, bonus window), and the
-                           two QR secret strings
+                           pacing (countdown length, bonus scheduling),
+                           leaderboard scoring, and the two QR secrets
 oauth.py                  Minimal Google OAuth2 client (no extra deps)
 admin_config.py           Allowlist of admin Gmail addresses
 schema.sql                players table definition
@@ -70,6 +80,8 @@ static/js/spiderweb.js      Animated canvas web background
 static/js/game.js           POSTs to /complete-game, handles the token
 static/js/qr_scan.js        Camera-based QR decoding (jsQR)
 static/js/bonus_watcher.js  Shows/hides the full-screen bonus alert
+static/js/no_back_nav.js    Stops Back from re-opening a cleared challenge
+static/js/run_timer.js      Ticks the player's live "YOUR TIME" clock
 ```
 
 ## Anti-cheat, briefly
@@ -93,9 +105,22 @@ handled separately; mini-game devs don't need any of it.
 
 ## Admin dashboard
 
-`/admin` shows the live leaderboard (finished runs, ranked by time) to
-staff only. Access is controlled by `admin_config.py` -- add the Gmail
-address of anyone who should be able to see it there before the event.
+`/admin` shows the live leaderboard to staff only. Access is controlled by
+`admin_config.py` -- add the Gmail address of anyone who should be able to
+see it there before the event.
+
+Ranking is set by `SCORING_MODE` in `games_config.py`:
+
+- **`"bonus_first"` (default)** -- anyone who cleared the bonus round
+  outranks everyone who didn't, and raw time only breaks ties inside each
+  group. The intended winner is the fastest player who *also* took the
+  bonus.
+- **`"time_credit"`** -- one flat ranking on time, with
+  `BONUS_TIME_CREDIT_SECONDS` knocked off for clearing the bonus, so a fast
+  non-clearer can still beat a slow clearer.
+
+Players who cleared the bonus get a golden **B** badge next to their name
+on the leaderboard either way.
 
 ## Deploying on PythonAnywhere
 

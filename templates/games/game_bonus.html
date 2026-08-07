@@ -1,30 +1,232 @@
 {% extends "games/game_base.html" %}
 {% block body_class %}page-game page-bonus{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Scoped styles for the Code Ninja bonus round only. */
+
+/* Overrides the shared .page-bonus .game-shell { background:
+    transparent; } rule (see static/css/style.css) on purpose, using an
+     asset already shipped in this repo (static/img/spidey-wait-backdrop.png,
+     also used on the waiting screen) instead of the animated canvas.
+     Equal specificity to the rule it overrides, but this <style> block
+     loads after style.css in base.html, so it wins the cascade. */
+     asset already shipped in this repo (static/img/game-bg-eyes.png,
+     used as the backdrop on the other four games) instead of the
+     animated canvas. Equal specificity to the rule it overrides, but
+     this <style> block loads after style.css in base.html, so it wins
+     the cascade. This asset is a 1080x1920 (9:16) image -- a standard
+     phone aspect ratio -- so plain cover/center behaves consistently
+     across screen sizes without the zoom/position tuning the previous
+     photo needed. */
+.page-bonus .game-shell {
+    background-image: url('{{ url_for('static', filename='img/spidey-wait-backdrop.png') }}');
+    background-image: url('{{ url_for('static', filename='img/game-bg-eyes.png') }}');
+   background-size: cover;
+   background-position: center center;
+   background-repeat: no-repeat;
+ }
+  /* background-attachment: fixed was tried here to fix phone framing,
+     but iOS Safari has long-standing bugs with fixed backgrounds, so
+     that's dropped. Instead, on narrow screens, zoom in directly on his
+     measured position in the source photo (character bounding box
+     measured at x 7%-99%, y 35%-70% of the image -- center 53%/52%)
+     so he reads as large and clearly visible instead of a thin sliver. */
+  @media (max-width: 600px) {
+    .page-bonus .game-shell {
+      background-size: 220%;
+      background-position: 53% 52%;
+    }
+  }
+
+ /* The shared .presented-by badge is pinned top-right on every page
+    (see static/css/style.css) -- on narrow phones it can overlap this
+    header's content. Push the header down a bit on small screens so
+    they don't collide. */
+ @media (max-width: 420px) {
+   .page-bonus .game-header { margin-top: 44px; }
+ }
+
+ /* Gold fill + thick black outline, comic-style, matching the
+    reference look -- overrides the shared style.css default (white
+    fill, thin red shadow) for this page only. */
+ .bonus-game-title {
+   color: var(--gold);
+   -webkit-text-stroke: 3px #05060f;
+   paint-order: stroke fill;
+   text-shadow:
+     -3px -3px 0 #05060f, 3px -3px 0 #05060f,
+     -3px 3px 0 #05060f, 3px 3px 0 #05060f,
+     -3px 0 0 #05060f, 3px 0 0 #05060f,
+     0 -3px 0 #05060f, 0 3px 0 #05060f,
+     0 6px 0 var(--red-dark), 0 4px 16px rgba(0, 0, 0, 0.6);
+ }
+
+ .ninja-wrap {
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+   align-items: stretch;
+   gap: 10px;
+ }
+ .ninja-hud {
+   display: flex;
+   justify-content: space-between;
+   font-family: 'Courier New', monospace;
+   font-weight: 700;
+   letter-spacing: 0.5px;
+   font-size: clamp(0.85rem, 2.8vmin, 1.05rem);
+   color: #7fe08f;
+   padding: 6px 10px;
+   background: rgba(0, 0, 0, 0.45);
+   border: 1px solid rgba(127, 224, 143, 0.35);
+   border-radius: 6px;
+ }
+ .ninja-hud-item::before { content: "> "; opacity: 0.7; }
+ .ninja-hud-item span { color: #fff; }
+ .ninja-cursor {
+   display: inline-block;
+   width: 8px;
+   color: #7fe08f;
+   animation: ninjaBlink 1s steps(1) infinite;
+ }
+ @keyframes ninjaBlink { 50% { opacity: 0; } }
+
+ .ninja-canvas-shell {
+   position: relative;
+   width: 100%;
+   border-radius: 10px;
+   overflow: hidden;
+   background: #05060f;
+   touch-action: none;
+   border: 1px solid rgba(127, 224, 143, 0.2);
+   box-shadow: 0 0 24px rgba(0, 0, 0, 0.6) inset;
+ }
+ #ninja-canvas {
+   display: block;
+   width: 100%;
+   height: 46vh;
+   max-height: 420px;
+   min-height: 260px;
+   touch-action: none;
+ }
+ .ninja-start-overlay,
+ .ninja-end-overlay {
+   position: absolute;
+   inset: 0;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 10px;
+   text-align: center;
+   padding: 20px;
+   background: rgba(5, 6, 15, 0.9);
+ }
+ .ninja-headline {
+   position: relative;
+   font-family: 'Bangers', cursive;
+   font-size: clamp(1.8rem, 6vmin, 2.6rem);
+   color: #fff;
+   text-shadow: 2px 2px 0 var(--red), -1px 0 rgba(127, 224, 143, 0.55);
+   letter-spacing: 1px;
+   animation: ninjaGlitch 4.5s infinite;
+ }
+ @keyframes ninjaGlitch {
+   0%, 92%, 100% { text-shadow: 2px 2px 0 var(--red), -1px 0 rgba(127, 224, 143, 0.55); transform: translate(0, 0); }
+   93% { text-shadow: -2px 1px 0 var(--red), 2px -1px 0 rgba(127, 224, 143, 0.7); transform: translate(-1px, 0); }
+   94% { text-shadow: 3px -1px 0 var(--red), -2px 1px 0 rgba(127, 224, 143, 0.7); transform: translate(1px, 0); }
+   95% { text-shadow: 2px 2px 0 var(--red), -1px 0 rgba(127, 224, 143, 0.55); transform: translate(0, 0); }
+ }
+ .ninja-prompt {
+   font-family: 'Courier New', monospace;
+   font-size: clamp(0.72rem, 1.9vmin, 0.85rem);
+   color: #7fe08f;
+   opacity: 0.85;
+   letter-spacing: 0.5px;
+ }
+ .ninja-copy {
+   font-family: 'Barlow', sans-serif;
+   font-size: clamp(0.85rem, 2vmin, 1rem);
+   color: #cfd4ee;
+   max-width: 300px;
+   line-height: 1.5;
+ }
+ .ninja-copy .ninja-tag-bad { color: #ff6b63; font-family: 'Courier New', monospace; font-weight: 700; }
+ .ninja-copy .ninja-tag-good { color: #7fe08f; font-family: 'Courier New', monospace; font-weight: 700; }
+ .ninja-btn {
+   margin-top: 6px;
+   padding: 12px 26px;
+   border: none;
+   border-radius: 6px;
+   font-family: 'Courier New', monospace;
+   font-weight: 700;
+   font-size: clamp(0.95rem, 3.2vmin, 1.2rem);
+   letter-spacing: 1px;
+   color: #05060f;
+   background: linear-gradient(180deg, var(--gold) 0%, #cc9900 100%);
+   box-shadow: 0 3px 0 #7a5c00, 0 0 18px rgba(255, 204, 51, 0.35);
+ }
+ .ninja-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #7a5c00; }
+ .ninja-end-stats {
+   font-family: 'Courier New', monospace;
+font-size: clamp(0.78rem, 2vmin, 0.92rem);
+color: #7fe08f;
+opacity: 0.9;
+}
+.ninja-hud-item.ninja-danger {
+color: #ff6b63;
+animation: ninjaPulse 0.5s ease-in-out infinite;
+}
+@keyframes ninjaPulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.06); }
+}
+.ninja-hidden { display: none !important; }
+</style>
+{% endblock %}
+
 {% block game_header %}
+{# Title + brief come from GAME_INFO so they match the rest of the run; only
+   the BONUS ROUND flash is special-cased here. #}
 <div class="game-header bonus-game-header">
-  <div class="bonus-round-tag">&#9889; BONUS ROUND</div>
-  <h1 class="game-title bonus-game-title">{{ game_info['title'] }}</h1>
-  <div class="bonus-game-tag">Quick! Beat it for a time boost.</div>
+<div class="bonus-round-tag">&#9889; BONUS ROUND</div>
+<h1 class="game-title bonus-game-title">{{ game_info['title'] }}</h1>
+<div class="bonus-game-tag">{{ game_info['blurb'] }}</div>
 </div>
 {% endblock %}
 
 {% block game_content %}
-<div class="placeholder-panel placeholder-bonus">
-  <div class="placeholder-headline bonus-placeholder-headline">BONUS MINI-GAME HERE</div>
-  <p class="game-placeholder-copy">
-    A lightning-quick bonus challenge drops into this panel.<br><br>
-    <strong>Placeholder for the Bonus Round: Bonus Web Strike.</strong>
-    Mini-game developers: replace this block (and the JS in
-    <code>static/js/game_bonus.js</code>) with the real challenge. When the
-    player finishes, call <code>completeGame('bonus')</code> from
-    <code>game.js</code>.
-  </p>
+<div class="ninja-wrap" id="ninja-wrap">
+<div class="ninja-hud">
+<div class="ninja-hud-item">bugs_fixed <span id="ninja-score">0</span>/<span id="ninja-target">14</span></div>
+<div class="ninja-hud-item" id="ninja-time-item">t_remaining <span id="ninja-time">45</span>s</div>
+</div>
+<div class="ninja-canvas-shell">
+<canvas id="ninja-canvas"></canvas>
+
+<div class="ninja-start-overlay" id="ninja-start-overlay">
+<div class="ninja-prompt">$ ./code_ninja --init</div>
+<div class="ninja-headline">CODE NINJA</div>
+<p class="ninja-copy">
+Swipe fast to slice the <span class="ninja-tag-bad">- bad code</span>
+before it drops. Leave <span class="ninja-tag-good">+ good code</span>
+alone -- slicing it burns 3 seconds off your clock.
+</p>
+<button type="button" id="ninja-start-btn" class="ninja-btn">&#9654; RUN</button>
+</div>
+
+<div class="ninja-end-overlay ninja-hidden" id="ninja-end-overlay">
+<div class="ninja-prompt" id="ninja-end-prompt">$ ./code_ninja --status</div>
+<div class="ninja-headline" id="ninja-end-headline">DEBUGGED!</div>
+<p class="ninja-copy" id="ninja-end-copy"></p>
+<div class="ninja-end-stats" id="ninja-end-stats"></div>
+</div>
+</div>
 </div>
 {% endblock %}
 
 {% block game_controls %}
-<button type="button" id="complete-btn" class="btn-complete btn-claim-bonus">CLAIM THE BONUS!</button>
 {% endblock %}
 
 {% block game_scripts %}
