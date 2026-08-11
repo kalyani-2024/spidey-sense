@@ -1,0 +1,328 @@
+{
+  "puzzles": [
+    {
+      "id": "p001",
+      "groups": [
+        { "name": "Git Commands", "difficulty": "easy", "words": ["Commit", "Push", "Pull", "Clone"] },
+        { "name": "Tree Terminology", "difficulty": "medium", "words": ["Root", "Leaf", "Node", "Branch"] },
+        { "name": "OOP Concepts", "difficulty": "hard", "words": ["Object", "Method", "Property", "Encapsulation"] },
+        { "name": "Java Keywords", "difficulty": "expert", "words": ["Public", "Static", "Void", "Class"] }
+      ]
+    },
+    {
+      "id": "p002",
+      "groups": [
+        { "name": "MVC Architecture", "difficulty": "easy", "words": ["Model", "Controller", "Route", "Template"] },
+        { "name": "SQL Commands", "difficulty": "medium", "words": ["Select", "Insert", "Update", "Delete"] },
+        { "name": "HTML Tags", "difficulty": "hard", "words": ["Div", "Span", "Form", "Table"] },
+        { "name": "Relational DB Terms", "difficulty": "expert", "words": ["Row", "Column", "Schema", "View"] }
+      ]
+    },
+    {
+      "id": "p003",
+      "groups": [
+        { "name": "Machine Learning", "difficulty": "easy", "words": ["Feature", "Label", "Epoch", "Train"] },
+        { "name": "Data Structures", "difficulty": "medium", "words": ["Queue", "Array", "Graph", "Set"] },
+        { "name": "Process Memory Segments", "difficulty": "hard", "words": ["Heap", "Stack", "Data", "Text"] },
+        { "name": "OSI Layers", "difficulty": "expert", "words": ["Physical", "Network", "Transport", "Application"] }
+      ]
+    },
+    {
+      "id": "p004",
+      "groups": [
+        { "name": "HTTP Methods", "difficulty": "easy", "words": ["Get", "Post", "Put", "Patch"] },
+        { "name": "Cryptography", "difficulty": "medium", "words": ["Cipher", "Hash", "Salt", "Signature"] },
+        { "name": "Key-Value Stores", "difficulty": "hard", "words": ["Key", "Value", "Map", "Dictionary"] },
+        { "name": "Web Performance", "difficulty": "expert", "words": ["Minify", "Compress", "Bundle", "LazyLoad"] }
+      ]
+    },
+    {
+      "id": "p005",
+      "groups": [
+        { "name": "CPU Components", "difficulty": "easy", "words": ["ALU", "Register", "Clock", "Cache"] },
+        { "name": "Control Flow", "difficulty": "medium", "words": ["If", "Else", "While", "For"] },
+        { "name": "Logic Gates", "difficulty": "hard", "words": ["And", "Or", "Not", "Xor"] },
+        { "name": "Process States", "difficulty": "expert", "words": ["Ready", "Running", "Blocked", "Terminated"] }
+      ]
+    },
+    {
+      "id": "p006",
+      "groups": [
+        { "name": "Agile Terminology", "difficulty": "easy", "words": ["Scrum", "Sprint", "Backlog", "Epic"] },
+        { "name": "Containerization", "difficulty": "medium", "words": ["Image", "Volume", "Container", "Pod"] },
+        { "name": "Frontend Frameworks", "difficulty": "hard", "words": ["React", "Vue", "Angular", "Svelte"] },
+        { "name": "Sorting Algorithms", "difficulty": "expert", "words": ["Bubble", "Quick", "Merge", "Insertion"] }
+      ]
+    },
+    {
+      "id": "p007",
+      "groups": [
+        { "name": "Graph Algorithms", "difficulty": "easy", "words": ["Dijkstra", "Kruskal", "Prim", "BFS"] },
+        { "name": "Variable Declarations", "difficulty": "medium", "words": ["Let", "Const", "Var", "Val"] },
+        { "name": "Primitive Types", "difficulty": "hard", "words": ["Int", "Float", "Char", "Boolean"] },
+        { "name": "Error Types", "difficulty": "expert", "words": ["Syntax", "Runtime", "Logic", "Compile"] }
+      ]
+    },
+    {
+      "id": "p008",
+      "groups": [
+        { "name": "Design Patterns", "difficulty": "easy", "words": ["Singleton", "Factory", "Observer", "Decorator"] },
+        { "name": "Cloud Services", "difficulty": "medium", "words": ["EC2", "S3", "RDS", "Lambda"] },
+        { "name": "Git Commands", "difficulty": "hard", "words": ["Commit", "Push", "Pull", "Clone"] },
+        { "name": "Tree Terminology", "difficulty": "expert", "words": ["Root", "Leaf", "Node", "Branch"] }
+      ]
+    },
+    {
+      "id": "p009",
+      "groups": [
+        { "name": "OOP Concepts", "difficulty": "easy", "words": ["Object", "Method", "Property", "Encapsulation"] },
+        { "name": "Java Keywords", "difficulty": "medium", "words": ["Public", "Static", "Void", "Class"] },
+        { "name": "MVC Architecture", "difficulty": "hard", "words": ["Model", "Controller", "Route", "Template"] },
+        { "name": "SQL Commands", "difficulty": "expert", "words": ["Select", "Insert", "Update", "Delete"] }
+      ]
+    },
+    {
+      "id": "p010",
+      "groups": [
+        { "name": "HTML Tags", "difficulty": "easy", "words": ["Div", "Span", "Form", "Table"] },
+        { "name": "Relational DB Terms", "difficulty": "medium", "words": ["Row", "Column", "Schema", "View"] },
+        { "name": "Machine Learning", "difficulty": "hard", "words": ["Feature", "Label", "Epoch", "Train"] },
+        { "name": "Data Structures", "difficulty": "expert", "words": ["Queue", "Array", "Graph", "Set"] }
+      ]
+    },
+    {
+      "id": "p011",
+      "groups": [
+        { "name": "Process Memory Segments", "difficulty": "easy", "words": ["Heap", "Stack", "Data", "Text"] },
+        { "name": "OSI Layers", "difficulty": "medium", "words": ["Physical", "Network", "Transport", "Application"] },
+        { "name": "HTTP Methods", "difficulty": "hard", "words": ["Get", "Post", "Put", "Patch"] },
+        { "name": "Cryptography", "difficulty": "expert", "words": ["Cipher", "Hash", "Salt", "Signature"] }
+      ]
+    },
+    {
+      "id": "p012",
+      "groups": [
+        { "name": "Key-Value Stores", "difficulty": "easy", "words": ["Key", "Value", "Map", "Dictionary"] },
+        { "name": "Web Performance", "difficulty": "medium", "words": ["Minify", "Compress", "Bundle", "LazyLoad"] },
+        { "name": "CPU Components", "difficulty": "hard", "words": ["ALU", "Register", "Clock", "Cache"] },
+        { "name": "Control Flow", "difficulty": "expert", "words": ["If", "Else", "While", "For"] }
+      ]
+    },
+    {
+      "id": "p013",
+      "groups": [
+        { "name": "Logic Gates", "difficulty": "easy", "words": ["And", "Or", "Not", "Xor"] },
+        { "name": "Process States", "difficulty": "medium", "words": ["Ready", "Running", "Blocked", "Terminated"] },
+        { "name": "Agile Terminology", "difficulty": "hard", "words": ["Scrum", "Sprint", "Backlog", "Epic"] },
+        { "name": "Containerization", "difficulty": "expert", "words": ["Image", "Volume", "Container", "Pod"] }
+      ]
+    },
+    {
+      "id": "p014",
+      "groups": [
+        { "name": "Frontend Frameworks", "difficulty": "easy", "words": ["React", "Vue", "Angular", "Svelte"] },
+        { "name": "Sorting Algorithms", "difficulty": "medium", "words": ["Bubble", "Quick", "Merge", "Insertion"] },
+        { "name": "Graph Algorithms", "difficulty": "hard", "words": ["Dijkstra", "Kruskal", "Prim", "BFS"] },
+        { "name": "Variable Declarations", "difficulty": "expert", "words": ["Let", "Const", "Var", "Val"] }
+      ]
+    },
+    {
+      "id": "p015",
+      "groups": [
+        { "name": "Primitive Types", "difficulty": "easy", "words": ["Int", "Float", "Char", "Boolean"] },
+        { "name": "Error Types", "difficulty": "medium", "words": ["Syntax", "Runtime", "Logic", "Compile"] },
+        { "name": "Design Patterns", "difficulty": "hard", "words": ["Singleton", "Factory", "Observer", "Decorator"] },
+        { "name": "Cloud Services", "difficulty": "expert", "words": ["EC2", "S3", "RDS", "Lambda"] }
+      ]
+    },
+    {
+      "id": "p016",
+      "groups": [
+        { "name": "Git Commands", "difficulty": "easy", "words": ["Commit", "Push", "Pull", "Clone"] },
+        { "name": "OOP Concepts", "difficulty": "medium", "words": ["Object", "Method", "Property", "Encapsulation"] },
+        { "name": "MVC Architecture", "difficulty": "hard", "words": ["Model", "Controller", "Route", "Template"] },
+        { "name": "HTML Tags", "difficulty": "expert", "words": ["Div", "Span", "Form", "Table"] }
+      ]
+    },
+    {
+      "id": "p017",
+      "groups": [
+        { "name": "Tree Terminology", "difficulty": "easy", "words": ["Root", "Leaf", "Node", "Branch"] },
+        { "name": "Java Keywords", "difficulty": "medium", "words": ["Public", "Static", "Void", "Class"] },
+        { "name": "SQL Commands", "difficulty": "hard", "words": ["Select", "Insert", "Update", "Delete"] },
+        { "name": "Relational DB Terms", "difficulty": "expert", "words": ["Row", "Column", "Schema", "View"] }
+      ]
+    },
+    {
+      "id": "p018",
+      "groups": [
+        { "name": "Machine Learning", "difficulty": "easy", "words": ["Feature", "Label", "Epoch", "Train"] },
+        { "name": "Process Memory Segments", "difficulty": "medium", "words": ["Heap", "Stack", "Data", "Text"] },
+        { "name": "HTTP Methods", "difficulty": "hard", "words": ["Get", "Post", "Put", "Patch"] },
+        { "name": "Key-Value Stores", "difficulty": "expert", "words": ["Key", "Value", "Map", "Dictionary"] }
+      ]
+    },
+    {
+      "id": "p019",
+      "groups": [
+        { "name": "Data Structures", "difficulty": "easy", "words": ["Queue", "Array", "Graph", "Set"] },
+        { "name": "OSI Layers", "difficulty": "medium", "words": ["Physical", "Network", "Transport", "Application"] },
+        { "name": "Cryptography", "difficulty": "hard", "words": ["Cipher", "Hash", "Salt", "Signature"] },
+        { "name": "Web Performance", "difficulty": "expert", "words": ["Minify", "Compress", "Bundle", "LazyLoad"] }
+      ]
+    },
+    {
+      "id": "p020",
+      "groups": [
+        { "name": "CPU Components", "difficulty": "easy", "words": ["ALU", "Register", "Clock", "Cache"] },
+        { "name": "Logic Gates", "difficulty": "medium", "words": ["And", "Or", "Not", "Xor"] },
+        { "name": "Agile Terminology", "difficulty": "hard", "words": ["Scrum", "Sprint", "Backlog", "Epic"] },
+        { "name": "Frontend Frameworks", "difficulty": "expert", "words": ["React", "Vue", "Angular", "Svelte"] }
+      ]
+    },
+    {
+      "id": "p021",
+      "groups": [
+        { "name": "Control Flow", "difficulty": "easy", "words": ["If", "Else", "While", "For"] },
+        { "name": "Process States", "difficulty": "medium", "words": ["Ready", "Running", "Blocked", "Terminated"] },
+        { "name": "Containerization", "difficulty": "hard", "words": ["Image", "Volume", "Container", "Pod"] },
+        { "name": "Sorting Algorithms", "difficulty": "expert", "words": ["Bubble", "Quick", "Merge", "Insertion"] }
+      ]
+    },
+    {
+      "id": "p022",
+      "groups": [
+        { "name": "Graph Algorithms", "difficulty": "easy", "words": ["Dijkstra", "Kruskal", "Prim", "BFS"] },
+        { "name": "Primitive Types", "difficulty": "medium", "words": ["Int", "Float", "Char", "Boolean"] },
+        { "name": "Design Patterns", "difficulty": "hard", "words": ["Singleton", "Factory", "Observer", "Decorator"] },
+        { "name": "Git Commands", "difficulty": "expert", "words": ["Commit", "Push", "Pull", "Clone"] }
+      ]
+    },
+    {
+      "id": "p023",
+      "groups": [
+        { "name": "Variable Declarations", "difficulty": "easy", "words": ["Let", "Const", "Var", "Val"] },
+        { "name": "Error Types", "difficulty": "medium", "words": ["Syntax", "Runtime", "Logic", "Compile"] },
+        { "name": "Cloud Services", "difficulty": "hard", "words": ["EC2", "S3", "RDS", "Lambda"] },
+        { "name": "Tree Terminology", "difficulty": "expert", "words": ["Root", "Leaf", "Node", "Branch"] }
+      ]
+    },
+    {
+      "id": "p024",
+      "groups": [
+        { "name": "OOP Concepts", "difficulty": "easy", "words": ["Object", "Method", "Property", "Encapsulation"] },
+        { "name": "SQL Commands", "difficulty": "medium", "words": ["Select", "Insert", "Update", "Delete"] },
+        { "name": "Machine Learning", "difficulty": "hard", "words": ["Feature", "Label", "Epoch", "Train"] },
+        { "name": "OSI Layers", "difficulty": "expert", "words": ["Physical", "Network", "Transport", "Application"] }
+      ]
+    },
+    {
+      "id": "p025",
+      "groups": [
+        { "name": "Java Keywords", "difficulty": "easy", "words": ["Public", "Static", "Void", "Class"] },
+        { "name": "HTML Tags", "difficulty": "medium", "words": ["Div", "Span", "Form", "Table"] },
+        { "name": "Data Structures", "difficulty": "hard", "words": ["Queue", "Array", "Graph", "Set"] },
+        { "name": "HTTP Methods", "difficulty": "expert", "words": ["Get", "Post", "Put", "Patch"] }
+      ]
+    },
+    {
+      "id": "p026",
+      "groups": [
+        { "name": "MVC Architecture", "difficulty": "easy", "words": ["Model", "Controller", "Route", "Template"] },
+        { "name": "Relational DB Terms", "difficulty": "medium", "words": ["Row", "Column", "Schema", "View"] },
+        { "name": "Process Memory Segments", "difficulty": "hard", "words": ["Heap", "Stack", "Data", "Text"] },
+        { "name": "Cryptography", "difficulty": "expert", "words": ["Cipher", "Hash", "Salt", "Signature"] }
+      ]
+    },
+    {
+      "id": "p027",
+      "groups": [
+        { "name": "Key-Value Stores", "difficulty": "easy", "words": ["Key", "Value", "Map", "Dictionary"] },
+        { "name": "Control Flow", "difficulty": "medium", "words": ["If", "Else", "While", "For"] },
+        { "name": "Agile Terminology", "difficulty": "hard", "words": ["Scrum", "Sprint", "Backlog", "Epic"] },
+        { "name": "Sorting Algorithms", "difficulty": "expert", "words": ["Bubble", "Quick", "Merge", "Insertion"] }
+      ]
+    },
+    {
+      "id": "p028",
+      "groups": [
+        { "name": "Web Performance", "difficulty": "easy", "words": ["Minify", "Compress", "Bundle", "LazyLoad"] },
+        { "name": "Logic Gates", "difficulty": "medium", "words": ["And", "Or", "Not", "Xor"] },
+        { "name": "Containerization", "difficulty": "hard", "words": ["Image", "Volume", "Container", "Pod"] },
+        { "name": "Graph Algorithms", "difficulty": "expert", "words": ["Dijkstra", "Kruskal", "Prim", "BFS"] }
+      ]
+    },
+    {
+      "id": "p029",
+      "groups": [
+        { "name": "CPU Components", "difficulty": "easy", "words": ["ALU", "Register", "Clock", "Cache"] },
+        { "name": "Process States", "difficulty": "medium", "words": ["Ready", "Running", "Blocked", "Terminated"] },
+        { "name": "Frontend Frameworks", "difficulty": "hard", "words": ["React", "Vue", "Angular", "Svelte"] },
+        { "name": "Variable Declarations", "difficulty": "expert", "words": ["Let", "Const", "Var", "Val"] }
+      ]
+    },
+    {
+      "id": "p030",
+      "groups": [
+        { "name": "Primitive Types", "difficulty": "easy", "words": ["Int", "Float", "Char", "Boolean"] },
+        { "name": "Cloud Services", "difficulty": "medium", "words": ["EC2", "S3", "RDS", "Lambda"] },
+        { "name": "OOP Concepts", "difficulty": "hard", "words": ["Object", "Method", "Property", "Encapsulation"] },
+        { "name": "SQL Commands", "difficulty": "expert", "words": ["Select", "Insert", "Update", "Delete"] }
+      ]
+    },
+    {
+      "id": "p031",
+      "groups": [
+        { "name": "Error Types", "difficulty": "easy", "words": ["Syntax", "Runtime", "Logic", "Compile"] },
+        { "name": "Git Commands", "difficulty": "medium", "words": ["Commit", "Push", "Pull", "Clone"] },
+        { "name": "Java Keywords", "difficulty": "hard", "words": ["Public", "Static", "Void", "Class"] },
+        { "name": "HTML Tags", "difficulty": "expert", "words": ["Div", "Span", "Form", "Table"] }
+      ]
+    },
+    {
+      "id": "p032",
+      "groups": [
+        { "name": "Design Patterns", "difficulty": "easy", "words": ["Singleton", "Factory", "Observer", "Decorator"] },
+        { "name": "Tree Terminology", "difficulty": "medium", "words": ["Root", "Leaf", "Node", "Branch"] },
+        { "name": "MVC Architecture", "difficulty": "hard", "words": ["Model", "Controller", "Route", "Template"] },
+        { "name": "Relational DB Terms", "difficulty": "expert", "words": ["Row", "Column", "Schema", "View"] }
+      ]
+    },
+    {
+      "id": "p033",
+      "groups": [
+        { "name": "Data Structures", "difficulty": "easy", "words": ["Queue", "Array", "Graph", "Set"] },
+        { "name": "HTTP Methods", "difficulty": "medium", "words": ["Get", "Post", "Put", "Patch"] },
+        { "name": "Web Performance", "difficulty": "hard", "words": ["Minify", "Compress", "Bundle", "LazyLoad"] },
+        { "name": "Logic Gates", "difficulty": "expert", "words": ["And", "Or", "Not", "Xor"] }
+      ]
+    },
+    {
+      "id": "p034",
+      "groups": [
+        { "name": "Process Memory Segments", "difficulty": "easy", "words": ["Heap", "Stack", "Data", "Text"] },
+        { "name": "Cryptography", "difficulty": "medium", "words": ["Cipher", "Hash", "Salt", "Signature"] },
+        { "name": "CPU Components", "difficulty": "hard", "words": ["ALU", "Register", "Clock", "Cache"] },
+        { "name": "Process States", "difficulty": "expert", "words": ["Ready", "Running", "Blocked", "Terminated"] }
+      ]
+    },
+    {
+      "id": "p035",
+      "groups": [
+        { "name": "OSI Layers", "difficulty": "easy", "words": ["Physical", "Network", "Transport", "Application"] },
+        { "name": "Key-Value Stores", "difficulty": "medium", "words": ["Key", "Value", "Map", "Dictionary"] },
+        { "name": "Control Flow", "difficulty": "hard", "words": ["If", "Else", "While", "For"] },
+        { "name": "Agile Terminology", "difficulty": "expert", "words": ["Scrum", "Sprint", "Backlog", "Epic"] }
+      ]
+    },
+    {
+      "id": "p036",
+      "groups": [
+        { "name": "Containerization", "difficulty": "easy", "words": ["Image", "Volume", "Container", "Pod"] },
+        { "name": "Graph Algorithms", "difficulty": "medium", "words": ["Dijkstra", "Kruskal", "Prim", "BFS"] },
+        { "name": "Error Types", "difficulty": "hard", "words": ["Syntax", "Runtime", "Logic", "Compile"] },
+        { "name": "Git Commands", "difficulty": "expert", "words": ["Commit", "Push", "Pull", "Clone"] }
+      ]
+    }
+  ]
+}
