@@ -16,14 +16,9 @@
 
   <h2 class="admin-title">LEADERBOARD </h2>
   <p class="scoreboard-rule">
-    {% if roster['scoring_mode'] == 'time_credit' %}
-      Ranked on adjusted time &mdash; clearing the bonus round takes
-      {{ roster['bonus_credit'] }}s off a player's run.
-    {% else %}
-      Ranked bonus-first: everyone who cleared
-      <span class="bonus-badge" title="Cleared the bonus round">B</span>
-      outranks everyone who didn't, fastest time first within each group.
-    {% endif %}
+    Fastest time wins. Clearing the bonus round
+    (<span class="bonus-badge" title="Cleared the bonus round">B</span>)
+    takes {{ roster['bonus_credit'] }}s off a player's time.
   </p>
   <div class="scoreboard">
     <div class="scoreboard-row scoreboard-head">
@@ -39,7 +34,7 @@
         </span>
         <span class="rank-time">
           {{ '%d:%02d'|format((e['score'] // 60)|int, (e['score'] % 60)|int) }}
-          {% if roster['scoring_mode'] == 'time_credit' and e['bonus_done'] %}
+          {% if e['bonus_done'] %}
             <small class="rank-time-raw">raw {{ '%d:%02d'|format((e['elapsed'] // 60)|int, (e['elapsed'] % 60)|int) }}</small>
           {% endif %}
         </span>

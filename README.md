@@ -10,20 +10,19 @@ A timed, 6-QR arcade run for a university stall event:
 1. Player signs in with Google (`/`).
 2. Player scans the first physical QR sticker at the stall (in-app camera
    scan) -- this starts their timer.
-3. Four mini-games in a fixed order. The first one starts immediately on
-   scanning; the other three are each preceded by a 3-minute countdown.
-   Once a challenge is cleared the player cannot get back into it -- Back
-   just returns them to wherever they actually are.
-4. A bonus round interrupts one of those countdowns (a full-screen "ALERT",
-   on screen for 10 seconds -- tap it to play the bonus challenge). Which
-   countdown is drawn per-player from `BONUS_SLOTS`, so it never lands at
-   the very start or the very end of a run. The 10 seconds is only the
-   window to *respond*; once they're in, they solve it in their own time.
-   It counts only if they **clear** it outright -- running out of time is a
-   loss, and it's one attempt either way. Missing the alert or losing the
-   round just means no bonus; neither blocks the main sequence.
-5. Once all four are done, the player scans the second physical QR sticker,
+3. Four mini-games in a fixed order, back to back -- there is no countdown
+   anywhere in the run. Clearing one challenge hands the player straight
+   into the next, and once a challenge is cleared they cannot get back into
+   it (Back just returns them to wherever they actually are).
+4. Once all four are done, the player scans the second physical QR sticker,
    which stops their timer.
+5. The finish screen offers **JOIN ACM!!!** -- tapping it opens the
+   membership portal *and* is the only thing that unlocks the bonus round.
+   Players who never tap it never see the bonus exists. Their clock has
+   already stopped by then, so playing it costs them nothing; clearing it
+   takes `BONUS_TIME_CREDIT_SECONDS` (30s) off their leaderboard time. It
+   counts only if they **clear** it outright, and it's one attempt either
+   way -- skipping or losing it just means no credit.
 6. A live "YOUR TIME" clock runs top-right on every in-run screen so players
    can see how long they're taking. They still never see the leaderboard or
    their ranking -- only event staff can, via `/admin` (Google-login gated,
@@ -58,16 +57,16 @@ to `True` before the actual event.**
 ```
 app.py                    Flask app factory / entrypoint, loads .env
 db.py                     SQLite connection + schema init/migration
-models.py                 Player state machine: countdowns, tokens, bonus
-                           scheduling, anti-cheat validation
+models.py                 Player state machine: progression, tokens, bonus
+                           unlocking, anti-cheat validation
 games_config.py           Single source of truth for the mini-game lineup,
-                           pacing (countdown length, bonus scheduling),
-                           leaderboard scoring, and the two QR secrets
+                           the bonus round's time credit, leaderboard
+                           scoring, and the two QR secrets
 oauth.py                  Minimal Google OAuth2 client (no extra deps)
 admin_config.py           Allowlist of admin Gmail addresses
 schema.sql                players table definition
 
-routes/main.py             /, /dashboard, /results
+routes/main.py             /, /dashboard, /results, /join-acm
 routes/auth.py             /login/google, /login/google/callback, /logout
 routes/scan.py              /scan/start, /scan/finish (QR camera pages)
 routes/games.py             /game/<id>, /complete-game
@@ -79,17 +78,18 @@ static/css/style.css        Comic/arcade theme (Bangers + Barlow fonts)
 static/js/spiderweb.js      Animated canvas web background
 static/js/game.js           POSTs to /complete-game, handles the token
 static/js/qr_scan.js        Camera-based QR decoding (jsQR)
-static/js/bonus_watcher.js  Shows/hides the full-screen bonus alert
 static/js/no_back_nav.js    Stops Back from re-opening a cleared challenge
 static/js/run_timer.js      Ticks the player's live "YOUR TIME" clock
+static/js/bonus_alert.js    Surprise bonus alert behind the JOIN ACM tap
 ```
 
 ## Anti-cheat, briefly
 
 Every completion is validated server-side (`models.mark_game_complete`):
-the game must be the player's actual current challenge, its countdown must
-have genuinely finished, and the request must include a one-time token that
-only exists in the HTML of that specific unlocked game page. None of this
+the game must be the player's actual current challenge, and the request
+must include a one-time token that only exists in the HTML of that specific
+unlocked game page. The bonus additionally requires a finished run and an
+unlock that only `/join-acm` (the JOIN ACM tap) grants. None of this
 is visible to or editable by mini-game code -- you never touch it.
 
 ---
@@ -109,18 +109,13 @@ handled separately; mini-game devs don't need any of it.
 `admin_config.py` -- add the Gmail address of anyone who should be able to
 see it there before the event.
 
-Ranking is set by `SCORING_MODE` in `games_config.py`:
+One flat ranking on time, fastest first. Clearing the bonus round subtracts
+`BONUS_TIME_CREDIT_SECONDS` (30s, in `games_config.py`) from a player's
+effective time, so a fast player who skipped the bonus can still beat a slow
+player who cleared it.
 
-- **`"bonus_first"` (default)** -- anyone who cleared the bonus round
-  outranks everyone who didn't, and raw time only breaks ties inside each
-  group. The intended winner is the fastest player who *also* took the
-  bonus.
-- **`"time_credit"`** -- one flat ranking on time, with
-  `BONUS_TIME_CREDIT_SECONDS` knocked off for clearing the bonus, so a fast
-  non-clearer can still beat a slow clearer.
-
-Players who cleared the bonus get a golden **B** badge next to their name
-on the leaderboard either way.
+Players who cleared the bonus get a golden **B** badge next to their name,
+and their raw (uncredited) time is shown alongside their score.
 
 ## Deploying on PythonAnywhere
 

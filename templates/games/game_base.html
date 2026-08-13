@@ -10,7 +10,6 @@
     {% include "_run_timer.html" %}
     {% include "_presented_by.html" %}
   </div>
-  {% if game_id != 'bonus' %}{% include "_bonus_banner.html" %}{% endif %}
 
   <div class="game-shell-content">
     {% block game_header %}
@@ -54,6 +53,5 @@
 <script src="{{ url_for('static', filename='js/no_back_nav.js') }}"></script>
 <script src="{{ url_for('static', filename='js/run_timer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/game.js') }}"></script>
-{% if game_id != 'bonus' %}<script src="{{ url_for('static', filename='js/bonus_watcher.js') }}"></script>{% endif %}
 {% block game_scripts %}{% endblock %}
 {% endblock %}

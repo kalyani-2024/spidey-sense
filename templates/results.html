@@ -21,6 +21,51 @@
 
   <p class="finish-copy">Thanks for playing! Hope your Spidey Sense was as sharp as Peter Parker's. But this is not the end...<br> Your next mission starts with ACM 🚀</p>
 
-  <a href="https://portal.acmbpdc.org/?next=%2Fmembership" class="finish-play-again">JOIN ACM!!!</a>
+  {# Nothing is written under this button on purpose -- the bonus is meant to
+     be a surprise, so the only hint it exists is the alert that jumps up
+     after the tap. The href is the no-JS path: /join-acm unlocks the bonus
+     and sends them onward server-side, so a phone that never runs the
+     script below still gets the round and then the portal. #}
+  <a href="{{ url_for('main.join_acm') }}" class="finish-play-again" id="join-acm">
+    JOIN ACM!!!
+  </a>
+
+  {# Rendered up-front (not injected by JS) so a player who unlocked the
+     bonus and then reloaded, or backed out of it, still finds their way in.
+     Hidden until unlocked -- bonus.state is 'locked' until they tap. #}
+  <div class="finish-bonus-reveal{{ ' is-open' if bonus['state'] == 'available' else '' }}"
+       id="bonus-reveal">
+    <div class="finish-bonus-inner">
+      <div class="finish-bonus-tag">&#9889; BONUS MISSION UNLOCKED</div>
+      <p class="finish-bonus-copy">
+        One shot &mdash; your clock has already stopped, so take your time.
+      </p>
+      <a href="{{ url_for('games.play_game', game_id='bonus') }}" class="finish-bonus-cta">
+        PLAY THE BONUS <span class="arrow">&rarr;</span>
+      </a>
+    </div>
+  </div>
 </div>
+
+{# The surprise: a full-screen alert that ambushes the player the moment
+   they tap JOIN ACM, holds for BONUS_ALERT_SECONDS, and hands them into the
+   bonus round when they claim it. Ignoring it just means the portal loads
+   as they expected -- it costs them the bonus, never the sign-up. #}
+<div class="bonus-banner" id="bonus-alert" data-seconds="{{ bonus_alert_seconds }}"
+     data-portal="{{ portal_url }}">
+  <div class="bonus-alert-dots"></div>
+  <div class="bonus-alert-siren">SPIDEY SENSE TINGLING</div>
+  <div class="bonus-alert-pop">SPIDEY-<br>SENSE!!</div>
+  <div class="bonus-alert-sub">SURPRISE BONUS MISSION</div>
+  <a href="{{ url_for('main.join_acm') }}" class="bonus-alert-cta" id="bonus-alert-cta">
+    CLAIM IT <span class="arrow">&rarr;</span>
+  </a>
+  <span class="bonus-banner-timer" id="bonus-alert-timer"></span>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if bonus['state'] in ('locked', 'available') %}
+<script src="{{ url_for('static', filename='js/bonus_alert.js') }}"></script>
+{% endif %}
 {% endblock %}

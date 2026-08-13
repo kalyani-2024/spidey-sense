@@ -13,9 +13,7 @@ import time
 from db import get_db
 from games_config import (
     MAIN_SEQUENCE, BONUS_ID, FINISH_STATE,
-    WAIT_SECONDS, FIRST_GAME_WAIT_SECONDS,
-    BONUS_SLOTS, BONUS_SLOT_LEAD_IN, BONUS_WINDOW_SECONDS, BONUS_PLAY_SECONDS,
-    SCORING_MODE, BONUS_TIME_CREDIT_SECONDS,
+    BONUS_PLAY_SECONDS, BONUS_TIME_CREDIT_SECONDS,
 )
 
 
@@ -71,9 +69,10 @@ def get_or_create_player(google_email, google_name=None):
 
 def begin_run(player_id):
     """
-    Start the timer: called only after the backend has validated a real scan
-    of the first stall QR (see routes/scan.py). Safe to call more than once
-    -- a player re-scanning after a page reload doesn't restart their clock.
+    Start the timer and drop the player straight into the first challenge --
+    called only after the backend has validated a real scan of the first
+    stall QR (see routes/scan.py). Safe to call more than once: a player
+    re-scanning after a page reload doesn't restart their clock.
     """
     db = get_db()
     player = get_player(player_id)
@@ -83,23 +82,18 @@ def begin_run(player_id):
         return player  # already started; don't reset
 
     now = time.time()
-    # No countdown before the very first game -- see FIRST_GAME_WAIT_SECONDS.
-    game_unlocks_at = now + FIRST_GAME_WAIT_SECONDS
     game_token = _generate_token(f"game{MAIN_SEQUENCE[0]}")
-    # Which countdown will host the bonus alert. The actual firing time isn't
-    # known yet -- it's set once the player reaches that slot, in
-    # _schedule_bonus_for_slot(), because it depends on when they get there.
-    bonus_slot = random.choice(BONUS_SLOTS) if BONUS_SLOTS else None
+    # The bonus token is minted up front but the round stays locked until
+    # they tap JOIN ACM on the finish screen -- see unlock_bonus().
     bonus_token = _generate_token("bonus")
 
     db.execute(
         """UPDATE players
            SET start_time = ?, current_game = ?, game_unlocks_at = ?, game_token = ?,
-               bonus_slot = ?, bonus_unlock_at = NULL, bonus_expires_at = NULL,
+               bonus_slot = NULL, bonus_unlock_at = NULL, bonus_expires_at = NULL,
                bonus_started_at = NULL, bonus_token = ?
            WHERE player_id = ?""",
-        (now, MAIN_SEQUENCE[0], game_unlocks_at, game_token,
-         bonus_slot, bonus_token, player_id),
+        (now, MAIN_SEQUENCE[0], now, game_token, bonus_token, player_id),
     )
     db.commit()
     return get_player(player_id)
@@ -119,7 +113,11 @@ def _completed_list(player):
 
 
 def game_status(player, now=None):
-    """Is the player's current main-sequence game counting down, or playable?"""
+    """
+    Is the player's current main-sequence game playable? There is no
+    countdown between challenges any more -- clearing one unlocks the next
+    immediately -- so a live run is always either "ready" or finished.
+    """
     now = now if now is not None else time.time()
     current = player["current_game"]
 
@@ -129,53 +127,17 @@ def game_status(player, now=None):
     if current in (FINISH_STATE, "done"):
         return {"state": current, "game_id": current}
 
-    unlocks_at = player["game_unlocks_at"] or 0
-    if now < unlocks_at:
-        return {
-            "state": "waiting",
-            "game_id": current,
-            "unlocks_at": unlocks_at,
-            "seconds_left": round(unlocks_at - now),
-        }
     return {
         "state": "ready",
         "game_id": current,
-        "unlocks_at": unlocks_at,
         "token": player["game_token"],
     }
 
 
-def _bonus_fire_time(countdown_start, countdown_length):
-    """
-    Pick the moment inside a countdown when the bonus alert pops. Kept well
-    clear of both ends of the wait so the alert never appears the instant the
-    wait screen loads, and never gets cut short by the next game unlocking.
-    """
-    latest = countdown_length - BONUS_WINDOW_SECONDS
-    earliest = min(BONUS_SLOT_LEAD_IN, max(latest, 0))
-    if latest <= earliest:
-        return countdown_start + earliest
-    return countdown_start + random.uniform(earliest, latest)
-
-
-def _schedule_bonus_for_slot(player, next_game, countdown_start, countdown_length):
-    """
-    If `next_game` is this player's drawn bonus slot, work out when the alert
-    fires during the countdown that's about to start. Returns
-    (bonus_unlock_at, bonus_expires_at), or (None, None) to leave it unset.
-    """
-    if player["bonus_completed"] or not player["bonus_slot"]:
-        return None, None
-    if next_game != player["bonus_slot"]:
-        return None, None
-    unlock_at = _bonus_fire_time(countdown_start, countdown_length)
-    return unlock_at, unlock_at + BONUS_WINDOW_SECONDS
-
-
 def bonus_status(player, now=None):
     """
-    Where the bonus round is for this player: not yet scheduled, counting
-    down to its alert, on screen right now, being played, missed, or done.
+    Where the bonus round is for this player: still locked behind the JOIN
+    ACM button on the finish screen, unlocked and playable, or done/spent.
     """
     now = now if now is not None else time.time()
 
@@ -187,40 +149,53 @@ def bonus_status(player, now=None):
     started_at = player["bonus_started_at"]
 
     if unlock_at is None:
-        # Either the slot hasn't been reached yet (bonus still to come), or
-        # this is a legacy row from before slot scheduling existed.
-        if player["bonus_slot"]:
-            return {"state": "pending", "started": False}
-        return {"state": "expired", "started": False}
+        # They haven't tapped JOIN ACM yet (or haven't finished their run) --
+        # the round exists but nothing has revealed it to them.
+        return {"state": "locked", "started": False}
 
-    if started_at:
-        # They answered the alert in time, so the alert's deadline has done
-        # its job and stops applying -- from here they solve it in their own
-        # time (BONUS_PLAY_SECONDS). `started` is also what stops the
-        # full-screen alert re-appearing over someone mid-bonus-game.
-        if expires_at is not None and now > expires_at:
-            return {"state": "expired", "started": True}
-        return {"state": "available", "started": True,
-                "unlock_at": unlock_at, "expires_at": expires_at,
-                "seconds_left": None if expires_at is None else round(expires_at - now),
-                "token": player["bonus_token"]}
+    # A spent attempt is recorded by pushing bonus_expires_at into the past
+    # (see forfeit_bonus) -- that's the only thing that closes the round
+    # short of clearing it, since there's otherwise no deadline.
+    if expires_at is not None and now > expires_at:
+        return {"state": "expired", "started": bool(started_at)}
 
-    if now < unlock_at:
-        return {"state": "locked", "started": False,
-                "unlock_at": unlock_at, "expires_at": expires_at}
-    if now <= expires_at:
-        return {"state": "available", "started": False,
-                "unlock_at": unlock_at, "expires_at": expires_at,
-                "seconds_left": round(expires_at - now), "token": player["bonus_token"]}
-    return {"state": "expired", "started": False}
+    return {"state": "available", "started": bool(started_at),
+            "unlock_at": unlock_at, "expires_at": expires_at,
+            "seconds_left": None if expires_at is None else round(expires_at - now),
+            "token": player["bonus_token"]}
+
+
+def unlock_bonus(player_id):
+    """
+    Reveal the bonus round. Called when a finished player taps JOIN ACM on
+    the results screen -- that button is the only door to it. Safe to call
+    repeatedly; tapping JOIN ACM again doesn't reopen a spent attempt.
+    """
+    player = get_player(player_id)
+    if player is None or player["bonus_completed"]:
+        return player
+    # Only reachable from the finish screen, so the run must be over. This is
+    # also what keeps the credit honest: their clock has already stopped, so
+    # the bonus can't be used to pause a run.
+    if not player["end_time"]:
+        return player
+    if player["bonus_unlock_at"] is not None:
+        return player  # already revealed (possibly already spent)
+
+    db = get_db()
+    db.execute(
+        "UPDATE players SET bonus_unlock_at = ?, bonus_expires_at = NULL WHERE player_id = ?",
+        (time.time(), player_id),
+    )
+    db.commit()
+    return get_player(player_id)
 
 
 def open_bonus(player_id):
     """
-    Called when the player actually lands on the bonus page. The alert window
-    (BONUS_WINDOW_SECONDS) is only how long they have to *respond* -- getting
-    here means they made it, so the alert's deadline is replaced by the play
-    window (BONUS_PLAY_SECONDS, None for no limit).
+    Called when the player actually lands on the bonus page. Records when
+    they started so a play deadline can apply if BONUS_PLAY_SECONDS is ever
+    set (None = no limit, the default).
     """
     player = get_player(player_id)
     if player is None or player["bonus_completed"]:
@@ -248,9 +223,9 @@ def forfeit_bonus(player_id, token=None):
     Record that the player played the bonus round and did NOT clear it.
 
     Clearing the bonus means clearing it outright (all bugs fixed / the
-    "DEBUGGED!" ending); running out of time is a loss, not a pass. This
-    closes their one attempt -- bonus_completed stays 0, so they get no
-    golden B and no leaderboard credit, and the round can't be replayed.
+    "DEBUGGED!" ending); losing is a loss, not a pass. This closes their one
+    attempt -- bonus_completed stays 0, so they get no golden B and no
+    time credit, and the round can't be replayed.
     """
     player = get_player(player_id)
     if player is None or player["bonus_completed"]:
@@ -265,7 +240,8 @@ def forfeit_bonus(player_id, token=None):
 
     db = get_db()
     # Expiring it is what closes the attempt: bonus_status() then reports
-    # "expired", the alert never comes back, and /game/bonus stops loading.
+    # "expired", the finish screen stops offering it, and /game/bonus stops
+    # loading.
     db.execute(
         "UPDATE players SET bonus_expires_at = ? WHERE player_id = ?",
         (now - 1, player_id),
@@ -296,11 +272,11 @@ def mark_game_complete(player_id, game_id, token=None):
     now = time.time()
 
     if game_id == BONUS_ID:
-        # With no play deadline, an opened-but-unfinished bonus would other-
-        # wise stay completable forever -- including after the player scanned
-        # the finish QR, which would re-rank a run that was already over.
-        if player["end_time"]:
-            return {"ok": False, "error": "Your run is already finished"}
+        # The bonus is played AFTER the run, from behind the JOIN ACM button
+        # on the finish screen -- so a stopped clock is a precondition here,
+        # not a rejection. It only ever adjusts the score, never the run.
+        if not player["end_time"]:
+            return {"ok": False, "error": "Finish your run first"}
 
         status = bonus_status(player, now)
         if status["state"] != "available":
@@ -338,36 +314,22 @@ def mark_game_complete(player_id, game_id, token=None):
 
     main_done = [g for g in completed if g in MAIN_SEQUENCE]
     if len(main_done) < len(MAIN_SEQUENCE):
+        # No countdown: the next challenge is playable the instant this one
+        # is cleared, and /complete-game hands the player straight into it.
         next_game = MAIN_SEQUENCE[len(main_done)]
-        next_unlocks_at = now + WAIT_SECONDS
+        next_unlocks_at = now
         next_token = _generate_token(f"game{next_game}")
-        # If the countdown that's about to start is this player's bonus slot,
-        # this is where the alert gets its firing time.
-        bonus_unlock_at, bonus_expires_at = _schedule_bonus_for_slot(
-            player, next_game, now, WAIT_SECONDS
-        )
     else:
         next_game = FINISH_STATE
         next_unlocks_at = None
         next_token = None
-        bonus_unlock_at, bonus_expires_at = None, None
 
-    if bonus_unlock_at is not None:
-        db.execute(
-            """UPDATE players
-               SET completed_games = ?, current_game = ?, game_unlocks_at = ?, game_token = ?,
-                   bonus_unlock_at = ?, bonus_expires_at = ?
-               WHERE player_id = ?""",
-            (",".join(completed), next_game, next_unlocks_at, next_token,
-             bonus_unlock_at, bonus_expires_at, player_id),
-        )
-    else:
-        db.execute(
-            """UPDATE players
-               SET completed_games = ?, current_game = ?, game_unlocks_at = ?, game_token = ?
-               WHERE player_id = ?""",
-            (",".join(completed), next_game, next_unlocks_at, next_token, player_id),
-        )
+    db.execute(
+        """UPDATE players
+           SET completed_games = ?, current_game = ?, game_unlocks_at = ?, game_token = ?
+           WHERE player_id = ?""",
+        (",".join(completed), next_game, next_unlocks_at, next_token, player_id),
+    )
     db.commit()
     return {"ok": True, "player": get_player(player_id)}
 
@@ -411,26 +373,18 @@ def elapsed_seconds(player):
 
 def score_entry(elapsed, bonus_done):
     """
-    Turn a finished run into the numbers the leaderboard ranks on. See
-    SCORING_MODE in games_config.py for what the two modes mean.
-
-    Returns (sort_key, effective_seconds). `sort_key` is a tuple so
-    "bonus_first" can rank on two levels at once; `effective_seconds` is what
-    the dashboard actually prints as the player's score.
+    Turn a finished run into the number the leaderboard ranks on: raw time,
+    minus BONUS_TIME_CREDIT_SECONDS for anyone who cleared the bonus round.
+    Fastest effective time wins -- one flat list, no separate brackets.
     """
-    if SCORING_MODE == "time_credit":
-        effective = max(0, elapsed - (BONUS_TIME_CREDIT_SECONDS if bonus_done else 0))
-        return (effective,), effective
-    # "bonus_first" (default): every bonus-clearer outranks every player who
-    # skipped or missed it, and raw time only breaks ties inside each group.
-    return (0 if bonus_done else 1, elapsed), elapsed
+    return max(0, elapsed - (BONUS_TIME_CREDIT_SECONDS if bonus_done else 0))
 
 
 def admin_player_list():
     """
-    Full roster for the admin dashboard -- finished runs first (best score on
-    top, see score_entry), then in-progress runs, then accounts that haven't
-    scanned QR #1 yet. Never exposed to players; only /admin renders this.
+    Full roster for the admin dashboard -- finished runs first (fastest
+    effective time on top, see score_entry), then in-progress runs, then
+    accounts that haven't scanned QR #1 yet. Never exposed to players.
     """
     db = get_db()
     rows = [dict(r) for r in db.execute("SELECT * FROM players ORDER BY created_at ASC").fetchall()]
@@ -451,7 +405,7 @@ def admin_player_list():
         }
         if r["end_time"]:
             entry["elapsed"] = r["end_time"] - r["start_time"]
-            entry["sort_key"], entry["score"] = score_entry(entry["elapsed"], bonus_done)
+            entry["score"] = score_entry(entry["elapsed"], bonus_done)
             finished.append(entry)
         elif r["start_time"]:
             entry["elapsed"] = elapsed_seconds(r)
@@ -459,12 +413,11 @@ def admin_player_list():
         else:
             not_started.append(entry)
 
-    finished.sort(key=lambda e: e["sort_key"])
+    finished.sort(key=lambda e: e["score"])
     in_progress.sort(key=lambda e: -e["elapsed"])
     return {
         "finished": finished,
         "in_progress": in_progress,
         "not_started": not_started,
-        "scoring_mode": SCORING_MODE,
         "bonus_credit": BONUS_TIME_CREDIT_SECONDS,
     }

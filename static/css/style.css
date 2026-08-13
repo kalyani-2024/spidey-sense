@@ -581,188 +581,11 @@ a { color: inherit; text-decoration: none; }
 .dot-bonus.dot-done { color: var(--gold); border-color: var(--gold); }
 .dot-bonus.dot-active { color: var(--red); border-color: var(--red); }
 
-/* ---------- bonus full-screen alert ---------- */
-.bonus-banner {
-  display: none;
-}
-.bonus-banner-visible {
-  display: flex;
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  overflow: hidden;
-  padding: 30px;
-  text-align: center;
-  cursor: pointer;
-  background: radial-gradient(circle at 50% 44%, var(--red) 0%, #7a0f14 52%, var(--bg-void) 100%);
-  animation: spx-tingle 0.5s ease-in-out infinite;
-}
-@keyframes spx-tingle {
-  0%, 100% { box-shadow: inset 0 0 0 0 rgba(232, 35, 43, 0); }
-  50%      { box-shadow: inset 0 0 120px 30px rgba(232, 35, 43, 0.55); }
-}
-.bonus-alert-dots {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(0, 0, 0, 0.18) 2px, transparent 2.2px);
-  background-size: 12px 12px;
-}
-.bonus-alert-siren {
-  position: relative;
-  font-family: 'Barlow', sans-serif;
-  font-size: clamp(0.9rem, 2.4vmin, 1.4rem);
-  font-weight: 800;
-  letter-spacing: 6px;
-  color: #ffd8d9;
-  animation: blink 0.8s infinite;
-}
-.bonus-alert-pop {
-  position: relative;
-  font-family: 'Bangers', cursive;
-  font-size: clamp(3.2rem, 12vmin, 7.5rem);
-  line-height: 0.8;
-  color: #fff;
-  text-shadow: 4px 4px 0 #05060f;
-  animation: spx-pop 0.35s ease both;
-}
-.bonus-alert-sub {
-  position: relative;
-  font-family: 'Bangers', cursive;
-  font-size: clamp(1.5rem, 5vmin, 2.8rem);
-  color: var(--gold);
-  text-shadow: 2px 2px 0 #05060f;
-  letter-spacing: 1px;
-}
-.bonus-alert-cta {
-  position: relative;
-  margin-top: 10px;
-  font-family: 'Barlow', sans-serif;
-  font-size: clamp(0.9rem, 2.2vmin, 1.3rem);
-  font-weight: 800;
-  color: #fff;
-  background: #05060f;
-  padding: 10px 24px;
-  border-radius: 12px;
-  border: 3px solid #fff;
-  animation: blink 1s infinite;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.bonus-banner-timer {
-  position: relative;
-  font-family: 'Courier New', monospace;
-  font-size: clamp(0.7rem, 1.6vmin, 0.95rem);
-  color: rgba(255, 255, 255, 0.6);
-}
-/* ---------- waiting room ---------- */
-.waiting-shell {
-  position: relative;
-  width: 100%;
-  min-height: 100dvh;
-  overflow: hidden;
-  background: #0b0f22;
-}
-.waiting-backdrop-art {
-  position: absolute;
-  inset: 0;
-  background-image: url('../img/spidey-wait-backdrop.png');
-  background-size: cover;
-  background-position: center;
-  animation: spx-drift 6s ease-in-out infinite;
-}
+/* Gentle float shared by the game-page backdrop art. */
 @keyframes spx-drift {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-10px); }
 }
-.waiting-backdrop-scrim {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 40%, rgba(232, 35, 43, 0.24), transparent 58%),
-    linear-gradient(180deg, rgba(11, 15, 34, 0.55) 0%, rgba(11, 15, 34, 0.6) 45%, rgba(11, 15, 34, 0.9) 100%),
-    radial-gradient(rgba(255, 255, 255, 0.05) 1.4px, transparent 1.5px);
-  background-size: auto, auto, 13px 13px;
-}
-.waiting-shell-content {
-  position: relative;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  /* Extra bottom padding biases the centred block upward (by about half the
-     extra) so "NEXT THREAT INCOMING" clears Spider-Man's head in the
-     backdrop instead of sitting across it. Padding rather than a fixed
-     offset so short screens just centre normally and never clip the top. */
-  padding: 30px 30px calc(30px + 22vh);
-  text-align: center;
-}
-.waiting-eyebrow {
-  font-family: 'Barlow', sans-serif;
-  font-weight: 700;
-  letter-spacing: 3px;
-  font-size: clamp(0.8rem, 1.8vmin, 1.05rem);
-  color: #9aa8dd;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-  margin-bottom: 10px;
-}
-.waiting-title {
-  font-family: 'Bangers', cursive;
-  font-size: clamp(2.2rem, 7.5vmin, 4.4rem);
-  line-height: 1;
-  color: #fff;
-  text-shadow: 2px 2px 0 var(--red), 4px 4px 0 #05060f;
-  margin: 0 0 26px;
-}
-.countdown-ring {
-  position: relative;
-  width: clamp(172px, 22vmin, 260px);
-  height: clamp(172px, 22vmin, 260px);
-  margin: 0 auto 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.countdown-ring-base {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 6px solid rgba(255, 255, 255, 0.08);
-}
-.countdown-ring-spin {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 6px solid transparent;
-  border-top-color: var(--gold);
-  animation: spx-spin 1.4s linear infinite;
-}
-@keyframes spx-spin { to { transform: rotate(360deg); } }
-.countdown-value {
-  position: relative;
-  font-family: 'Bangers', cursive;
-  font-size: clamp(2.8rem, 9vmin, 5.5rem);
-  color: #fff;
-  text-shadow: 3px 3px 0 var(--red);
-}
-.waiting-copy {
-  font-family: 'Barlow', sans-serif;
-  font-weight: 600;
-  color: #dbe3ff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-  font-size: clamp(0.9rem, 2.2vmin, 1.2rem);
-  max-width: 340px;
-  margin: 0 auto;
-  line-height: 1.4;
-}
-.tingle-word { color: var(--gold); }
 
 /* ---------- game pages ---------- */
 .game-shell {
@@ -1001,6 +824,138 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 4px 4px 0 #05060f;
 }
 .finish-play-again:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #05060f; }
+/* ---------- surprise bonus alert (finish screen) ----------
+   Fires over the whole screen when JOIN ACM is tapped, holds for
+   BONUS_ALERT_SECONDS, then continues to the portal on its own.
+   See static/js/bonus_alert.js and templates/results.html. */
+.bonus-banner { display: none; }
+.bonus-banner-visible {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 30px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 44%, var(--red) 0%, #7a0f14 52%, var(--bg-void) 100%);
+  animation: spx-tingle 0.5s ease-in-out infinite;
+}
+@keyframes spx-tingle {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(232, 35, 43, 0); }
+  50%      { box-shadow: inset 0 0 120px 30px rgba(232, 35, 43, 0.55); }
+}
+.bonus-alert-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.18) 2px, transparent 2.2px);
+  background-size: 12px 12px;
+}
+.bonus-alert-siren {
+  position: relative;
+  font-family: 'Barlow', sans-serif;
+  font-size: clamp(0.9rem, 2.4vmin, 1.4rem);
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: #ffd8d9;
+  animation: blink 0.8s infinite;
+}
+.bonus-alert-pop {
+  position: relative;
+  font-family: 'Bangers', cursive;
+  font-size: clamp(3.2rem, 12vmin, 7.5rem);
+  line-height: 0.8;
+  color: #fff;
+  text-shadow: 4px 4px 0 #05060f;
+  animation: spx-pop 0.35s ease both;
+}
+.bonus-alert-sub {
+  position: relative;
+  font-family: 'Bangers', cursive;
+  font-size: clamp(1.5rem, 5vmin, 2.8rem);
+  color: var(--gold);
+  text-shadow: 2px 2px 0 #05060f;
+  letter-spacing: 1px;
+}
+.bonus-alert-cta {
+  position: relative;
+  margin-top: 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: clamp(0.9rem, 2.2vmin, 1.3rem);
+  font-weight: 800;
+  color: #fff;
+  background: #05060f;
+  padding: 10px 24px;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  animation: blink 1s infinite;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bonus-banner-timer {
+  position: relative;
+  font-family: 'Courier New', monospace;
+  font-size: clamp(0.7rem, 1.6vmin, 0.95rem);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* The bonus round's only door, hidden until JOIN ACM is tapped (see
+   templates/results.html). Collapsed rather than display:none so the
+   reveal animates instead of snapping the layout. */
+.finish-bonus-reveal {
+  position: relative;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: 0;
+  transition: grid-template-rows 0.45s ease, opacity 0.45s ease, margin-top 0.45s ease;
+  pointer-events: none;
+}
+.finish-bonus-reveal.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 14px;
+  pointer-events: auto;
+}
+.finish-bonus-inner { overflow: hidden; }
+.finish-bonus-tag {
+  font-family: 'Bangers', cursive;
+  font-size: clamp(1.1rem, 3.2vmin, 1.6rem);
+  letter-spacing: 1px;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 #05060f;
+}
+.finish-bonus-copy {
+  font-family: 'Barlow', sans-serif;
+  font-size: clamp(0.82rem, 1.9vmin, 1rem);
+  font-weight: 600;
+  color: #c9d3f5;
+  max-width: 320px;
+  line-height: 1.45;
+  margin: 6px auto 10px;
+}
+.finish-bonus-copy b { color: var(--gold); }
+.finish-bonus-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Bangers', cursive;
+  font-size: clamp(1.1rem, 3.2vmin, 1.5rem);
+  letter-spacing: 1px;
+  color: #05060f;
+  background: var(--gold);
+  padding: 9px 24px;
+  border-radius: 14px;
+  border: 3px solid #05060f;
+  box-shadow: 4px 4px 0 #05060f;
+  text-decoration: none;
+}
+.finish-bonus-cta:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #05060f; }
 
 /* ---------- admin (internal tool, not part of the player-facing prototype) ---------- */
 .admin-shell {
@@ -1072,26 +1027,6 @@ a { color: inherit; text-decoration: none; }
   text-indent: 1px;
   box-shadow: 0 0 8px rgba(255,204,51,0.6);
   vertical-align: middle;
-}
-/* Quiet "get back into the bonus you already opened" link (see
-   _bonus_banner.html) -- deliberately not the full-screen alert. */
-.bonus-resume-link {
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 40;
-  padding: 8px 16px;
-  border: 2px solid var(--gold);
-  border-radius: 999px;
-  background: rgba(0,0,0,0.75);
-  color: var(--gold);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  text-decoration: none;
-  white-space: nowrap;
 }
 .scoreboard-rule {
   margin: 4px 0 0;

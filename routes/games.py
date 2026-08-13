@@ -2,7 +2,8 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify, flash
 
 import models
-from games_config import GAME_INFO, MAIN_SEQUENCE, BONUS_ID, FINISH_STATE
+from games_config import (GAME_INFO, MAIN_SEQUENCE, BONUS_ID, FINISH_STATE,
+                          MEMBERSHIP_PORTAL_URL)
 
 games_bp = Blueprint("games", __name__)
 
@@ -34,8 +35,8 @@ def _current_player():
 @games_bp.route("/game/<game_id>")
 def play_game(game_id):
     """
-    Loads the current mini-game -- or a waiting-room / not-available page
-    if the server-side state says the player isn't allowed in yet.
+    Loads the current mini-game, or bounces the player back to wherever
+    they belong if the server-side state says they aren't allowed in.
     """
     if game_id not in VALID_GAME_IDS:
         flash("Unknown challenge.")
@@ -54,12 +55,12 @@ def play_game(game_id):
             flash("You already cleared the bonus round!")
             return redirect(url_for("main.dashboard"))
         if bonus["state"] != "available":
-            flash("The bonus round isn't here right now -- keep going, it can pop up anytime.")
+            # Locked means they haven't come through the JOIN ACM button on
+            # the finish screen; expired means their one attempt is spent.
+            flash("The bonus round isn't open for you.")
             return redirect(url_for("main.dashboard"))
 
-        # Landing here converts the short alert window into a full play window
-        # -- see models.open_bonus(). Re-read the status so the page renders
-        # with the extended deadline rather than the alert's few seconds.
+        # Records when their attempt began -- see models.open_bonus().
         player = models.open_bonus(player["player_id"]) or player
         bonus = models.bonus_status(player)
 
@@ -83,19 +84,9 @@ def play_game(game_id):
             flash("That's not your current challenge yet.")
         return redirect(url_for("main.dashboard"))
 
+    # No waiting room: a live run's current game is always immediately
+    # playable, so this renders the challenge straight away.
     status = models.game_status(player)
-    if status["state"] == "waiting":
-        return render_template(
-            "waiting.html",
-            player=player,
-            progress=progress,
-            bonus=bonus,
-            elapsed=models.elapsed_seconds(player),
-            game_id=game_id,
-            game_info=GAME_INFO[game_id],
-            unlocks_at=status["unlocks_at"],
-        )
-
     return render_template(
         f"games/game{game_id}.html",
         player=player,
@@ -121,9 +112,10 @@ def forfeit_bonus():
 
     payload = request.get_json(silent=True) or request.form
     models.forfeit_bonus(player_id, payload.get("token"))
-    # Always send them back into their run: a lost bonus never blocks the
-    # main sequence, and there's nothing left for them on this page.
-    return jsonify({"status": "ok", "redirect": url_for("main.dashboard")})
+    # The bonus sits between JOIN ACM and the membership portal, so a spent
+    # attempt still hands them to the portal -- losing it costs the time
+    # credit, not the sign-up they tapped for.
+    return jsonify({"status": "ok", "redirect": MEMBERSHIP_PORTAL_URL})
 
 
 @games_bp.route("/complete-game", methods=["POST"])
@@ -150,7 +142,9 @@ def complete_game():
     player = result["player"]
     next_state = player["current_game"]
     if game_id == BONUS_ID:
-        redirect_url = url_for("main.dashboard")
+        # Clearing the bonus is the last thing before the membership portal
+        # -- that's what they tapped JOIN ACM for (see forfeit_bonus).
+        redirect_url = MEMBERSHIP_PORTAL_URL
     elif next_state == FINISH_STATE:
         redirect_url = url_for("main.dashboard")
     else:

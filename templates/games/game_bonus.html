@@ -7,21 +7,15 @@
 
 /* Overrides the shared .page-bonus .game-shell { background:
     transparent; } rule (see static/css/style.css) on purpose, using an
-     asset already shipped in this repo (static/img/spidey-wait-backdrop.png,
-     also used on the waiting screen) instead of the animated canvas.
-     Equal specificity to the rule it overrides, but this <style> block
-     loads after style.css in base.html, so it wins the cascade. */
-     asset already shipped in this repo (static/img/game-bg-eyes.png,
-     used as the backdrop on the other four games) instead of the
-     animated canvas. Equal specificity to the rule it overrides, but
-     this <style> block loads after style.css in base.html, so it wins
-     the cascade. This asset is a 1080x1920 (9:16) image -- a standard
-     phone aspect ratio -- so plain cover/center behaves consistently
-     across screen sizes without the zoom/position tuning the previous
-     photo needed. */
+    asset already shipped in this repo (static/img/game-bg-eyes.png, used
+    as the backdrop on the other four games) instead of the animated
+    canvas. Equal specificity to the rule it overrides, but this <style>
+    block loads after style.css in base.html, so it wins the cascade.
+    This asset is a 1080x1920 (9:16) image -- a standard phone aspect
+    ratio -- so plain cover/center behaves consistently across screen
+    sizes without the zoom/position tuning the previous photo needed. */
 .page-bonus .game-shell {
-    background-image: url('{{ url_for('static', filename='img/spidey-wait-backdrop.png') }}');
-    background-image: url('{{ url_for('static', filename='img/game-bg-eyes.png') }}');
+   background-image: url('{{ url_for('static', filename='img/game-bg-eyes.png') }}');
    background-size: cover;
    background-position: center center;
    background-repeat: no-repeat;

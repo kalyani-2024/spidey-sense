@@ -3,7 +3,8 @@ routes/scan.py; the actual challenges live in routes/games.py."""
 from flask import Blueprint, render_template, session, redirect, url_for
 
 import models
-from games_config import FINISH_STATE
+from games_config import (FINISH_STATE, BONUS_TIME_CREDIT_SECONDS,
+                          MEMBERSHIP_PORTAL_URL, BONUS_ALERT_SECONDS)
 
 main_bp = Blueprint("main", __name__)
 
@@ -74,7 +75,36 @@ def results():
     if not player["end_time"]:
         return redirect(url_for("main.dashboard"))
 
-    # Deliberately not passing elapsed/time (or bonus/progress detail) here
-    # -- the finish screen matches the prototype exactly, and players never
-    # see their time or ranking anyway; only admins do (see routes/admin.py).
-    return render_template("results.html", player=player)
+    # Deliberately not passing elapsed/time here -- players never see their
+    # time or ranking, only admins do (see routes/admin.py). `bonus` is
+    # passed because the finish screen hides the bonus round behind the JOIN
+    # ACM button, and needs to know whether it's still on offer.
+    return render_template("results.html", player=player,
+                           bonus=models.bonus_status(player),
+                           bonus_credit=BONUS_TIME_CREDIT_SECONDS,
+                           portal_url=MEMBERSHIP_PORTAL_URL,
+                           bonus_alert_seconds=BONUS_ALERT_SECONDS)
+
+
+@main_bp.route("/join-acm")
+def join_acm():
+    """
+    The JOIN ACM button on the finish screen. It doesn't open the membership
+    portal directly: the bonus round stands between the tap and the portal,
+    so this unlocks the bonus and sends them into it, and only a player with
+    no attempt left (already cleared or spent it) goes straight through.
+
+    The portal is still where they end up either way -- routes/games.py
+    redirects there once the bonus attempt closes.
+
+    models.unlock_bonus() re-checks the run is actually finished, so hitting
+    this URL by hand mid-run doesn't hand anyone an early bonus.
+    """
+    player = _current_player()
+    if not player:
+        return redirect(MEMBERSHIP_PORTAL_URL)
+
+    player = models.unlock_bonus(player["player_id"]) or player
+    if models.bonus_status(player)["state"] == "available":
+        return redirect(url_for("games.play_game", game_id="bonus"))
+    return redirect(MEMBERSHIP_PORTAL_URL)
