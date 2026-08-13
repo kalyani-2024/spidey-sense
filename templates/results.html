@@ -30,21 +30,9 @@
     JOIN ACM!!!
   </a>
 
-  {# Rendered up-front (not injected by JS) so a player who unlocked the
-     bonus and then reloaded, or backed out of it, still finds their way in.
-     Hidden until unlocked -- bonus.state is 'locked' until they tap. #}
-  <div class="finish-bonus-reveal{{ ' is-open' if bonus['state'] == 'available' else '' }}"
-       id="bonus-reveal">
-    <div class="finish-bonus-inner">
-      <div class="finish-bonus-tag">&#9889; BONUS MISSION UNLOCKED</div>
-      <p class="finish-bonus-copy">
-        One shot &mdash; your clock has already stopped, so take your time.
-      </p>
-      <a href="{{ url_for('games.play_game', game_id='bonus') }}" class="finish-bonus-cta">
-        PLAY THE BONUS <span class="arrow">&rarr;</span>
-      </a>
-    </div>
-  </div>
+  {# Deliberately no second way in below the button: a player who unlocked
+     the bonus and then reloaded or backed out just taps JOIN ACM again --
+     /join-acm sends an already-unlocked player straight back to the round. #}
 </div>
 
 {# The surprise: a full-screen alert that ambushes the player the moment

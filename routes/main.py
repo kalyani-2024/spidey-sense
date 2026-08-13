@@ -3,8 +3,8 @@ routes/scan.py; the actual challenges live in routes/games.py."""
 from flask import Blueprint, render_template, session, redirect, url_for
 
 import models
-from games_config import (FINISH_STATE, BONUS_TIME_CREDIT_SECONDS,
-                          MEMBERSHIP_PORTAL_URL, BONUS_ALERT_SECONDS)
+from games_config import (FINISH_STATE, MEMBERSHIP_PORTAL_URL,
+                          BONUS_ALERT_SECONDS)
 
 main_bp = Blueprint("main", __name__)
 
@@ -76,12 +76,12 @@ def results():
         return redirect(url_for("main.dashboard"))
 
     # Deliberately not passing elapsed/time here -- players never see their
-    # time or ranking, only admins do (see routes/admin.py). `bonus` is
-    # passed because the finish screen hides the bonus round behind the JOIN
-    # ACM button, and needs to know whether it's still on offer.
+    # time or ranking, only admins do (see routes/admin.py). Nor the bonus
+    # time credit: the finish screen never mentions the bonus at all before
+    # the tap. `bonus` is passed only so the alert script is left out for a
+    # player with no attempt left.
     return render_template("results.html", player=player,
                            bonus=models.bonus_status(player),
-                           bonus_credit=BONUS_TIME_CREDIT_SECONDS,
                            portal_url=MEMBERSHIP_PORTAL_URL,
                            bonus_alert_seconds=BONUS_ALERT_SECONDS)
 
