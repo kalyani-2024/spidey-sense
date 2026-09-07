@@ -22,6 +22,8 @@
   var busy = false; // true while we're waiting on the server after a decode
   var stream = null;
   var frames = 0; // frames actually handed to jsQR, for the nudge below
+  var lastError = "";
+  var lastSeen = "";
 
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
@@ -80,7 +82,10 @@
       setStatus("Still looking -- fill the frame with the code and hold steady.");
     }
 
-    if (code && code.data) submitCode(code.data);
+    if (code && code.data) {
+      lastSeen = code.data;
+      submitCode(code.data);
+    }
   }
 
   function tick() {
@@ -89,6 +94,7 @@
       scanFrame();
     } catch (e) {
       // Never let one bad frame end the loop -- just try the next one.
+      lastError = (e && e.message) || String(e);
     }
     requestAnimationFrame(tick);
   }
@@ -118,6 +124,9 @@
       stream = s;
       video.srcObject = stream;
       video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.setAttribute("autoplay", "");
+      video.muted = true;
       var played = video.play();
       if (played && played.catch) {
         played.catch(function () {
@@ -127,7 +136,39 @@
       }
       requestAnimationFrame(tick);
     })
-    .catch(function () {
+    .catch(function (e) {
+      lastError = (e && e.name) || String(e);
       setStatus("Camera access denied. Allow camera access and reload the page.");
     });
+
+  /*
+   * Diagnostics, off unless the URL carries ?debug=1. A scanner that just
+   * "doesn't detect" gives you nothing to go on from the stall floor: this
+   * says whether the library loaded, what resolution the camera actually
+   * handed over, whether frames are still being scanned, and what the last
+   * decode was. Nothing here is secret -- it only ever shows what the phone
+   * itself is looking at.
+   */
+  if (window.location.search.indexOf("debug=1") !== -1) {
+    var box = document.createElement("div");
+    box.style.cssText =
+      "position:fixed;left:0;right:0;bottom:0;z-index:9999;padding:8px 10px;" +
+      "background:rgba(0,0,0,0.85);color:#0f0;font:11px/1.5 monospace;" +
+      "white-space:pre-wrap;word-break:break-all;text-align:left";
+    document.body.appendChild(box);
+    setInterval(function () {
+      var t = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+      var st = t && t.getSettings ? t.getSettings() : {};
+      box.textContent = [
+        "jsQR loaded : " + (typeof window.jsQR === "function"),
+        "stream      : " + (!!stream) + (t ? " (" + t.readyState + ")" : ""),
+        "camera      : " + (st.width || "?") + "x" + (st.height || "?") + " " + (st.facingMode || "?"),
+        "video       : " + video.videoWidth + "x" + video.videoHeight +
+          " ready=" + video.readyState + " paused=" + video.paused,
+        "frames sent : " + frames,
+        "last decode : " + (lastSeen || "(nothing yet)"),
+        "last error  : " + (lastError || "none")
+      ].join("\n");
+    }, 400);
+  }
 })();
