@@ -61,25 +61,51 @@
       });
   }
 
-  function scanFrame() {
+  // Decoding a full 1280x720 frame every tick is what made this crawl on a
+  // phone: jsQR is pure JS, so cost scales with pixel count, and each frame
+  // took long enough that the camera had moved on by the time it finished.
+  // We decode a downscaled square instead -- the same region the round
+  // preview shows, since the video is object-fit:cover in a square box.
+  var DECODE_SIZE = 400;   // px square actually handed to jsQR
+  var MIN_FRAME_MS = 60;   // ~16fps ceiling, leaves the phone room to focus
+  var lastRun = 0;
+  var wideTurn = 0;
+
+  function decode(sx, sy, sw, sh, size, invert) {
+    canvas.width = size;
+    canvas.height = size;
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, size, size);
+    var d = ctx.getImageData(0, 0, size, size);
+    return window.jsQR(d.data, d.width, d.height, { inversionAttempts: invert });
+  }
+
+  function scanFrame(now) {
     if (busy) return;
     // videoWidth stays 0 until the camera has really handed over a frame;
     // drawing that is what throws.
     if (!video.videoWidth || !video.videoHeight) return;
+    if (now - lastRun < MIN_FRAME_MS) return;
+    lastRun = now;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var code = window.jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: "attemptBoth",
-    });
+    var vw = video.videoWidth;
+    var vh = video.videoHeight;
+    var side = Math.min(vw, vh);
+    var code = decode((vw - side) / 2, (vh - side) / 2, side, side,
+                      DECODE_SIZE, "dontInvert");
+
+    // Every fourth miss, take one pass over the whole frame instead. Costs
+    // little at this size and catches a code sitting outside the square the
+    // preview shows, or printed light-on-dark.
+    wideTurn += 1;
+    if (!code && wideTurn % 4 === 0) {
+      code = decode(0, 0, vw, vh, DECODE_SIZE, "attemptBoth");
+    }
 
     frames += 1;
-    // A stall QR held at arm's length under bad light can take a few
-    // seconds; say so rather than sitting on "Point your camera...".
-    if (frames === 150) {
-      setStatus("Still looking -- fill the frame with the code and hold steady.");
+    // The advice that matters is the margin, not the size: a code pressed
+    // right up to the edges has no quiet zone left and will not decode.
+    if (frames === 120) {
+      setStatus("Move back a little -- keep white space all around the code.");
     }
 
     if (code && code.data) {
@@ -88,10 +114,10 @@
     }
   }
 
-  function tick() {
+  function tick(now) {
     if (!stream) return;
     try {
-      scanFrame();
+      scanFrame(now || 0);
     } catch (e) {
       // Never let one bad frame end the loop -- just try the next one.
       lastError = (e && e.message) || String(e);
@@ -165,7 +191,7 @@
         "camera      : " + (st.width || "?") + "x" + (st.height || "?") + " " + (st.facingMode || "?"),
         "video       : " + video.videoWidth + "x" + video.videoHeight +
           " ready=" + video.readyState + " paused=" + video.paused,
-        "frames sent : " + frames,
+        "frames sent : " + frames + " (decode " + DECODE_SIZE + "px)",
         "last decode : " + (lastSeen || "(nothing yet)"),
         "last error  : " + (lastError || "none")
       ].join("\n");
