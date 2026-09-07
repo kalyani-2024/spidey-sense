@@ -4,7 +4,10 @@
 
 {% block extra_head %}
 {% if not dev_mode %}
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+{# Served from our own static/ rather than a CDN: stall wifi that
+   blocks or stalls jsdelivr would otherwise leave a live camera
+   preview that can never decode anything. #}
+<script src="{{ url_for('static', filename='js/jsQR.js') }}"></script>
 {% endif %}
 {% endblock %}
 

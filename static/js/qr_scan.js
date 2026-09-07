@@ -4,6 +4,12 @@
  * never trusted on its own -- it's POSTed to the server (SPIDEY_SCAN_SUBMIT_URL,
  * set inline by scan.html) which is the only thing that actually validates
  * it and starts/stops the timer.
+ *
+ * Everything in the frame loop is wrapped in try/catch and the next frame is
+ * always queued: one thrown frame (a camera that hands back a zero-sized
+ * buffer mid-rotation, say) used to kill the loop for good, leaving a live
+ * preview that would never again decode anything -- which looks exactly like
+ * "the scanner doesn't work" with nothing on screen to say so.
  */
 (function () {
   var video = document.getElementById("scan-video");
@@ -15,9 +21,10 @@
   var ctx = canvas.getContext("2d", { willReadFrequently: true });
   var busy = false; // true while we're waiting on the server after a decode
   var stream = null;
+  var frames = 0; // frames actually handed to jsQR, for the nudge below
 
   function setStatus(text) {
-    statusEl.textContent = text;
+    if (statusEl) statusEl.textContent = text;
   }
 
   function stopCamera() {
@@ -52,19 +59,43 @@
       });
   }
 
+  function scanFrame() {
+    if (busy) return;
+    // videoWidth stays 0 until the camera has really handed over a frame;
+    // drawing that is what throws.
+    if (!video.videoWidth || !video.videoHeight) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "attemptBoth",
+    });
+
+    frames += 1;
+    // A stall QR held at arm's length under bad light can take a few
+    // seconds; say so rather than sitting on "Point your camera...".
+    if (frames === 150) {
+      setStatus("Still looking -- fill the frame with the code and hold steady.");
+    }
+
+    if (code && code.data) submitCode(code.data);
+  }
+
   function tick() {
     if (!stream) return;
-    if (video.readyState === video.HAVE_ENOUGH_DATA && !busy) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      var code = window.jsQR(imageData.data, imageData.width, imageData.height);
-      if (code && code.data) {
-        submitCode(code.data);
-      }
+    try {
+      scanFrame();
+    } catch (e) {
+      // Never let one bad frame end the loop -- just try the next one.
     }
     requestAnimationFrame(tick);
+  }
+
+  if (typeof window.jsQR !== "function") {
+    setStatus("Scanner failed to load. Reload the page.");
+    return;
   }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -72,12 +103,28 @@
     return;
   }
 
+  // A bigger frame is what makes a printed code readable from a normal
+  // arm's length -- the default a phone hands back is often 640x480, which
+  // only decodes if the QR nearly fills the screen.
   navigator.mediaDevices
-    .getUserMedia({ video: { facingMode: "environment" } })
+    .getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    })
     .then(function (s) {
       stream = s;
       video.srcObject = stream;
-      video.play();
+      video.setAttribute("playsinline", "");
+      var played = video.play();
+      if (played && played.catch) {
+        played.catch(function () {
+          setStatus("Tap the video to start the camera.");
+          video.addEventListener("click", function () { video.play(); });
+        });
+      }
       requestAnimationFrame(tick);
     })
     .catch(function () {
