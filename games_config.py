@@ -91,11 +91,11 @@ BONUS_TIME_CREDIT_SECONDS = 30
 # backend checks). Change these to whatever you actually print, and keep
 # them out of anywhere a player could casually see them (i.e. never put
 # them in a template or a JS file that ships to the browser).
-START_QR_SECRET = "SPIDEY-SENSE-START-2026"
-FINISH_QR_SECRET = "SPIDEY-SENSE-FINISH-2026"
+START_QR_SECRET = "SPX-7QK4-START-M2A9"
+FINISH_QR_SECRET = "SPX-7QK4-END-V6R3"
 
 # Flip to True for the real event. While False, /scan/start and /scan/finish
 # skip the camera + secret check entirely and just show a "TAP TO CONTINUE"
 # button instead -- lets you run through the whole flow on a laptop with no
 # camera and no printed QR codes.
-QR_SCAN_REQUIRED = False
+QR_SCAN_REQUIRED = True
